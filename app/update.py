@@ -30,7 +30,8 @@ KEEP = {".env", "data", ".venv", "dist", ".git"}
 
 def latest_version() -> str:
     try:
-        r = httpx.get(f"{RAW}/version.txt", timeout=15.0, follow_redirects=True)
+        import time as _t
+        r = httpx.get(f"{RAW}/version.txt?t={int(_t.time())}", timeout=15.0, follow_redirects=True)
         if r.status_code == 200:
             return r.text.strip()
     except Exception:
