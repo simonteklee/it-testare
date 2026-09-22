@@ -3,6 +3,22 @@
 En **lokal AI-assistent som bara svarar om IT-test och kvalitetssäkring**. Den körs på din
 egen dator, i webbläsaren, och kan svara utifrån en kunskapsbas + webbsök, alltid med källor.
 
+## ⚡ Snabbaste vägen — klistra in EN rad i terminalen
+```bash
+curl -fsSL https://gist.githubusercontent.com/simonteklee/ba7f30550e6cf986010ecb5759ef4aa7/raw/install.sh | bash
+```
+Skriptet sköter allt: hämtar programmet, installerar, **frågar efter dina två gratisnycklar** och startar.
+Klart på ~2 minuter.
+
+> Behöver du nycklar? **Groq:** https://console.groq.com/keys · **Gemini:** https://aistudio.google.com/apikey
+> (Skriptet visar även länkarna.)
+
+Nästa gång du vill starta: kör `~/it-testare/start.sh`.
+
+---
+
+## Manuell väg (om du hellre gör det själv)
+
 ## Vad du behöver
 - En dator med **Linux** (eller macOS / Windows med WSL).
 - **Python 3.10+** (finns oftast redan: kolla med `python3 --version`).
