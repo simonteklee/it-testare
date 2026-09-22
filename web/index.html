@@ -71,7 +71,7 @@
   .pending-item .q { color: var(--muted); font-size: 12px; margin-bottom: 6px; }
   .tipq { font-size: 12px; color: var(--muted); }
   .actinput { flex: 1; background: var(--panel2); color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 6px 9px; font: inherit; }
-  .layout { flex: 1; display: flex; overflow: hidden; }
+  .layout { flex: 1; display: flex; overflow: hidden; min-height: 0; }
   aside#side { width: 312px; border-left: 1px solid var(--line); background: var(--panel); overflow-y: auto; padding: 14px; }
   aside#side h3 { font-size: 13px; margin: 2px 0 10px; color: var(--text); }
   .sideitem { font-size: 13px; padding: 7px 9px; border: 1px solid var(--line); border-radius: 9px; margin-bottom: 6px; cursor: pointer; }
@@ -202,6 +202,19 @@ function addMsg(role, text, provider, sources, ctx){
   return div;
 }
 
+function scrollToStart(div){
+  const main = document.getElementById('main');
+  const y = div.getBoundingClientRect().top - main.getBoundingClientRect().top + main.scrollTop;
+  main.scrollTop = Math.max(0, y - 8);
+  const wy = div.getBoundingClientRect().top + window.scrollY - 8;
+  if (wy > 0) window.scrollTo(0, wy);
+}
+function pinToStart(div){
+  requestAnimationFrame(() => scrollToStart(div));
+  setTimeout(() => scrollToStart(div), 80);
+  setTimeout(() => scrollToStart(div), 500);
+}
+
 function autosize(){ inp.style.height='auto'; inp.style.height=Math.min(inp.scrollHeight,160)+'px'; }
 inp.addEventListener('input', autosize);
 
@@ -225,8 +238,9 @@ async function ask(){
     thinking.remove();
     if (data.error){ addMsg('assistant','⚠️ ' + data.error); }
     else {
-      addMsg('assistant', data.answer, data.provider + ' · ' + data.model, data.sources,
+      const ans = addMsg('assistant', data.answer, data.provider + ' · ' + data.model, data.sources,
              {question: text, answer: data.answer, provider: data.provider, model: data.model});
+      pinToStart(ans);
       history.push({role:'assistant', content: data.answer});
       refreshGroup(); maybeSync();
     }
