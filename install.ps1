@@ -52,21 +52,32 @@ GEMINI_MODEL=gemini-3.6-flash
 EMBED_MODEL=sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
 "@ | Set-Content -Encoding UTF8 ".env"
 
-Write-Host "`n✓ Klart! Startar IT-testare i bakgrunden..." -ForegroundColor Green
+Write-Host "`nKlart! Startar IT-testare i bakgrunden..." -ForegroundColor Green
 Start-Process -WindowStyle Hidden -FilePath "$dir\.venv\Scripts\uvicorn.exe" `
     -ArgumentList "app.main:app --host 127.0.0.1 --port 8765" -WorkingDirectory $dir
 Start-Sleep -Seconds 3
 Start-Process "http://127.0.0.1:8765"
-Write-Host "Klart! Du kan stanga det har fonstret."
-# Skapa en genvag pa skrivbordet med ikon
-$ws = New-Object -ComObject WScript.Shell
-$lnk = Join-Path ([Environment]::GetFolderPath('Desktop')) 'IT-testare.lnk'
-$sc = $ws.CreateShortcut($lnk)
-$sc.TargetPath = "$dir\start.vbs"
-$sc.WorkingDirectory = $dir
-$sc.IconLocation = "$dir\web\icon.ico"
-$sc.Description = 'IT-testare - lokal AI for IT-test'
-$sc.Save()
-Write-Host "Genvag 'IT-testare' skapad pa skrivbordet." -ForegroundColor Green
-Write-Host "Nasta gang: dubbelklicka den (kor i bakgrunden, oppnas i app-lage)."
-Write-Host "Tips: i Edge/Chrome gar ocksa menyen -> 'Installera den har appen' for egen ikon i Startmenyn."
+
+# Genvagar (skrivbord + startmeny)
+try {
+    $ws = New-Object -ComObject WScript.Shell
+    $targets = @(([Environment]::GetFolderPath('Desktop')),
+                 (Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs'))
+    foreach ($t in $targets) {
+        if (-not (Test-Path $t)) { continue }
+        $lnk = Join-Path $t 'IT-testare.lnk'
+        $sc = $ws.CreateShortcut($lnk)
+        $sc.TargetPath = "$dir\start.vbs"
+        $sc.WorkingDirectory = $dir
+        $sc.IconLocation = "$dir\web\icon.ico"
+        $sc.Description = 'IT-testare - lokal AI for IT-test'
+        $sc.Save()
+    }
+    Write-Host "Genvagar skapade: skrivbord + Startmeny ('IT-testare')." -ForegroundColor Green
+} catch {
+    Write-Host "Kunde inte skapa genvag automatiskt: $_" -ForegroundColor Yellow
+    Write-Host "Starta istallet genom att dubbelklicka pa start.cmd i mappen it-testare."
+}
+
+Write-Host "`nKLART! Du kan stanga det har PowerShell-fonstret."
+Write-Host "Nasta gang: dubbelklicka 'IT-testare' pa skrivbordet eller i Startmenyn." -ForegroundColor Green
