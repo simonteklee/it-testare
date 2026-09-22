@@ -1,0 +1,5 @@
+# lokalt/hemligt
+.env
+data/
+__pycache__/
+.venv/
