@@ -33,6 +33,13 @@ Byggs fas för fas. Efter varje fas kör vi och kollar att det funkar innan näs
 - [ ] "Verifierad"-markering → betrodd kunskapsbank.
 - [ ] Valfritt granskningsläge.
 
-## Fas 5 — Paketera & dela
-- [ ] App-genväg/skript för enkel start.
-- [ ] Alternativ för att dela med en vän.
+## Fas 5 — Paketera & dela ✅
+- [x] App-genväg + **systemd-tjänst** (`it-testare.service`) → startar automatiskt, körs alltid.
+- [x] **Delbart kunskapspaket**: ladda ner (JSON) eller publicera/hämta som **GitHub Gist** (hemlig).
+- [x] **Community / lär av andra**: "💡 Vad andra frågat" (vanligaste frågorna) + importera en väns paket
+  → deras verifierade svar blir källor märkta *community*.
+
+## Nästa (förslag)
+- Synka kontinuerligt mot gisten, eller låt flera bidra.
+- Fler webbsök-källor/vitlista, bättre källvisning.
+- Valfritt: paketera som riktig skrivbordsapp.

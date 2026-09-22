@@ -66,6 +66,8 @@
   .badge input { vertical-align: middle; margin-right: 4px; }
   .pending-item { border: 1px solid var(--line); border-radius: 10px; padding: 10px; margin: 6px 0; background: var(--panel2); }
   .pending-item .q { color: var(--muted); font-size: 12px; margin-bottom: 6px; }
+  .tipq { font-size: 12px; color: var(--muted); }
+  .actinput { flex: 1; background: var(--panel2); color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 6px 9px; font: inherit; }
 </style>
 </head>
 <body>
@@ -77,6 +79,7 @@
   </div>
   <div class="spacer"></div>
   <label class="badge" title="Nya verifierade svar läggs i en kö för granskning"><input id="review" type="checkbox" />🔎 granska</label>
+  <button id="tipsBtn" class="badge">💡 tips &amp; dela</button>
   <button id="pendingBtn" class="badge" hidden>Granska (0)</button>
   <div class="badge" id="status">ansluter…</div>
 </header>
@@ -214,6 +217,7 @@ inp.focus();
 // Deep-länk: /?q=...  → ställ frågan automatiskt
 const _q = new URLSearchParams(location.search).get('q');
 if (_q) { inp.value = _q; autosize(); ask(); }
+if (new URLSearchParams(location.search).has('tips')) showTips();
 
 // Filuppladdning → kunskapsbasen
 const fileBtn = document.getElementById('attach');
@@ -281,6 +285,45 @@ async function showPending(){
 }
 
 document.getElementById('pendingBtn').addEventListener('click', showPending);
+document.getElementById('tipsBtn').addEventListener('click', showTips);
+
+async function showTips(){
+  let top = [];
+  try { top = (await fetch('/api/trending').then(r=>r.json())).top || []; } catch(e){}
+  const box = document.createElement('div'); box.className = 'msg bot';
+  let html = '<b>💡 Vad andra frågat</b>';
+  html += top.length
+    ? top.map(x => '<div class="tipq">' + x.antal + '× — ' + esc(x.q) + '</div>').join('')
+    : '<div class="tipq">Inga frågor loggade än.</div>';
+  html += '<div class="actions"><button class="act" id="dlPack">⬇ Ladda ner mitt paket</button>'
+        + '<button class="act" id="shareGist">🔗 Dela via GitHub</button></div>'
+        + '<div class="actions"><input class="actinput" id="gistInput" placeholder="gist-id eller länk från en vän" />'
+        + '<button class="act" id="fetchGist">⬇ Hämta paket</button></div>'
+        + '<div class="actstatus" id="tipstatus"></div>';
+  box.innerHTML = DOMPurify.sanitize(html);
+  chat.appendChild(box); document.getElementById('main').scrollTop = 1e9;
+  const st = box.querySelector('#tipstatus');
+  box.querySelector('#dlPack').onclick = async () => {
+    const d = await fetch('/api/export').then(r=>r.json());
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(d,null,2)], {type:'application/json'}));
+    a.download = 'it-testare-paket.json'; a.click();
+    st.textContent = 'paket nedladdat (' + (d.verified||[]).length + ' verifierade svar, ' + (d.top_questions||[]).length + ' frågor)';
+  };
+  box.querySelector('#shareGist').onclick = async () => {
+    st.textContent = 'publicerar…';
+    const r = await fetch('/api/share/gist', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({gist_id:''})}).then(r=>r.json());
+    st.textContent = r.url ? ('delad! länk: ' + r.url) : ('fel: ' + (r.error||'?'));
+  };
+  box.querySelector('#fetchGist').onclick = async () => {
+    let gid = box.querySelector('#gistInput').value.trim();
+    if (gid.includes('/')) gid = gid.replace(/\/$/,'').split('/').pop();
+    st.textContent = 'hämtar…';
+    const r = await fetch('/api/fetch/gist', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({gist_id: gid})}).then(r=>r.json());
+    st.textContent = r.error ? ('fel: ' + r.error) : (r.added + ' community-svar hämtade');
+    refreshStatus();
+  };
+}
 document.getElementById('review').addEventListener('change', async (e) => {
   const cfg = await fetch('/api/config', {method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({review_mode: e.target.checked})}).then(r=>r.json());

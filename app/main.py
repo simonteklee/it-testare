@@ -9,7 +9,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from . import extract, feedback, kb, search
+from . import extract, feedback, kb, search, share
 from .llm import ProviderError, available_providers, generate
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -56,6 +56,14 @@ class ConfigRequest(BaseModel):
     review_mode: bool
 
 
+class ImportRequest(BaseModel):
+    pack: dict | None = None
+
+
+class GistRequest(BaseModel):
+    gist_id: str = ""
+
+
 def gather(query: str, use_web: bool) -> tuple[str, list[dict]]:
     """Samlar kontext + källor från kunskapsbas och (valfritt) webbsök."""
     parts: list[str] = []
@@ -70,7 +78,7 @@ def gather(query: str, use_web: bool) -> tuple[str, list[dict]]:
         n += 1
         parts.append(f"[{n}] ({h['source']})\n{h['text']}")
         sources.append({"n": n, "source": h["source"], "url": h.get("url", ""),
-                         "score": h.get("score"), "kind": "kb"})
+                         "score": h.get("score"), "kind": h.get("kind", "kb")})
 
     if use_web:
         try:
@@ -96,6 +104,7 @@ def gather(query: str, use_web: bool) -> tuple[str, list[dict]]:
 async def health() -> dict:
     return {"status": "ok", "app": "IT-testare",
             "providers": available_providers(), "kb_chunks": kb.count(),
+            "community": kb.count_kind("community"),
             "qa": feedback.stats(), "review_mode": feedback.load_config().get("review_mode", False)}
 
 
@@ -105,6 +114,7 @@ async def chat(req: ChatRequest) -> JSONResponse:
     if not msgs:
         return JSONResponse({"error": "Tom fråga"}, status_code=400)
     last_user = next((m["content"] for m in reversed(msgs) if m["role"] == "user"), "")
+    share.log_question(last_user)
     context, sources = gather(last_user, req.web)
     try:
         result = await generate(msgs, context=context or None)
@@ -181,6 +191,40 @@ async def api_approve(index: int) -> dict:
 @app.post("/api/pending/{index}/reject")
 async def api_reject(index: int) -> dict:
     return feedback.reject(index)
+
+
+@app.get("/api/trending")
+async def trending() -> dict:
+    return {"top": share.top_questions(12)}
+
+
+@app.get("/api/export")
+async def export_pack() -> JSONResponse:
+    return JSONResponse(share.build_pack("svar"))
+
+
+@app.post("/api/import")
+async def import_pack(req: ImportRequest) -> JSONResponse:
+    if not req.pack:
+        return JSONResponse({"error": "inget paket"}, status_code=400)
+    return JSONResponse(share.import_pack(req.pack))
+
+
+@app.post("/api/share/gist")
+async def share_gist(req: GistRequest) -> JSONResponse:
+    try:
+        return JSONResponse(share.publish_gist(share.build_pack("svar"), req.gist_id or None))
+    except Exception as e:  # noqa: BLE001
+        return JSONResponse({"error": str(e)}, status_code=400)
+
+
+@app.post("/api/fetch/gist")
+async def fetch_gist(req: GistRequest) -> JSONResponse:
+    try:
+        pack = share.fetch_gist(req.gist_id)
+        return JSONResponse({**share.import_pack(pack), "from_gist": req.gist_id})
+    except Exception as e:  # noqa: BLE001
+        return JSONResponse({"error": str(e)}, status_code=400)
 
 
 @app.get("/", response_class=HTMLResponse)

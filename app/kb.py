@@ -58,7 +58,8 @@ def add_documents(docs: list[dict], batch: int = 50) -> int:
             vecs = embed_texts([d["text"] for d in part])
             for d, v in zip(part, vecs):
                 rec = {"text": d["text"], "source": d.get("source", ""),
-                       "url": d.get("url", ""), "vector": v}
+                       "url": d.get("url", ""), "kind": d.get("kind", "kb"),
+                       "vector": v}
                 f.write(json.dumps(rec, ensure_ascii=False) + "\n")
                 added += 1
     return added
@@ -81,9 +82,14 @@ def search(query: str, k: int = 4) -> list[dict]:
     out = []
     for score, d in scored[:k]:
         out.append({"score": round(score, 4), "text": d["text"],
-                    "source": d.get("source", ""), "url": d.get("url", "")})
+                    "source": d.get("source", ""), "url": d.get("url", ""),
+                    "kind": d.get("kind", "kb")})
     return out
 
 
 def count() -> int:
     return len(load())
+
+
+def count_kind(kind: str) -> int:
+    return sum(1 for d in load() if d.get("kind") == kind)
