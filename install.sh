@@ -56,10 +56,17 @@ if [ -n "${GROQ_API_KEY:-}" ] && [ -n "${GEMINI_API_KEY:-}" ]; then
 else
   echo
   echo "== Två gratis nycklar behövs (2 min) =="
-  echo "  1) Groq:   https://console.groq.com/keys   → Create API Key"
-  echo "  2) Gemini: https://aistudio.google.com/apikey → Create API key"
-  read -rp "Klistra in GROQ-nyckel (gsk_...): " GROQ < /dev/tty
-  read -rp "Klistra in GEMINI-nyckel: " GEM < /dev/tty
+  echo "Jag öppnar rätt sida i webbläsaren. Skapa en nyckel, kopiera den och klistra in här."
+  echo
+  echo "--- Nyckel 1 av 2: GROQ ---"
+  (xdg-open "https://console.groq.com/keys" >/dev/null 2>&1 || open "https://console.groq.com/keys" >/dev/null 2>&1 || true) &
+  echo "  Logga in (GitHub/Google) → 'Create API Key' → kopiera (gsk_...)"
+  read -rp "  Klistra in GROQ-nyckeln här och tryck Enter: " GROQ < /dev/tty
+  echo
+  echo "--- Nyckel 2 av 2: GEMINI ---"
+  (xdg-open "https://aistudio.google.com/apikey" >/dev/null 2>&1 || open "https://aistudio.google.com/apikey" >/dev/null 2>&1 || true) &
+  echo "  Logga in (Google) → 'Create API key' → kopiera"
+  read -rp "  Klistra in GEMINI-nyckeln här och tryck Enter: " GEM < /dev/tty
 fi
 
 cat > .env <<EOF
