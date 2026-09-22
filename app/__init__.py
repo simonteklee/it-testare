@@ -1,1 +1,2 @@
-"""IT-testare — lokal AI-assistent för IT-test och kvalitetssäkring."""
+"""IT-testare — version."""
+__version__ = "1.1.0"

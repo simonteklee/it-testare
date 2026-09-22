@@ -9,7 +9,7 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from . import community, extract, feedback, kb, search, share
+from . import community, extract, feedback, kb, search, share, update
 from .llm import ProviderError, available_providers, generate
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -313,6 +313,19 @@ async def community_sync() -> JSONResponse:
 @app.get("/api/community/list")
 async def community_list() -> dict:
     return {"items": community.all_qa()[:60]}
+
+
+@app.get("/api/version")
+async def version_info() -> dict:
+    return update.status()
+
+
+@app.post("/api/update")
+async def do_update() -> JSONResponse:
+    try:
+        return JSONResponse(update.update_and_restart())
+    except Exception as e:  # noqa: BLE001
+        return JSONResponse({"error": str(e)}, status_code=400)
 
 
 @app.get("/", response_class=HTMLResponse)

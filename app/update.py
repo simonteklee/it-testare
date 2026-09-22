@@ -1,0 +1,107 @@
+"""Uppdatering (fas 6): hämta senaste versionen från GitHub och uppdatera appen.
+
+- Kollar senaste version via `version.txt` i repot.
+- Uppdaterar: `git pull` om appen är en git-klon, annars laddar tarball och kopierar koden
+  (behåller `.env`, `data/` och `.venv`).
+- Startar om tjänsten (systemd på Linux; på Windows ombeds användaren starta om).
+"""
+from __future__ import annotations
+
+import io
+import shutil
+import subprocess
+import tarfile
+import tempfile
+import threading
+import time
+from pathlib import Path
+
+import httpx
+
+from . import __version__
+
+ROOT = Path(__file__).resolve().parent.parent
+REPO = "simonteklee/it-testare"
+BRANCH = "main"
+RAW = f"https://raw.githubusercontent.com/{REPO}/{BRANCH}"
+TARBALL = f"https://codeload.github.com/{REPO}/tar.gz/refs/heads/{BRANCH}"
+KEEP = {".env", "data", ".venv", "dist", ".git"}
+
+
+def latest_version() -> str:
+    try:
+        r = httpx.get(f"{RAW}/version.txt", timeout=15.0, follow_redirects=True)
+        if r.status_code == 200:
+            return r.text.strip()
+    except Exception:
+        pass
+    return ""
+
+
+def status() -> dict:
+    lv = latest_version()
+    return {"current": __version__, "latest": lv or __version__,
+            "update_available": bool(lv) and lv != __version__}
+
+
+def _apply_git() -> dict:
+    p = subprocess.run(["git", "-C", str(ROOT), "pull", "--ff-only"],
+                       capture_output=True, text=True)
+    return {"ok": p.returncode == 0, "method": "git", "output": (p.stdout + p.stderr)[-400:]}
+
+
+def _apply_tarball() -> dict:
+    with httpx.stream("GET", TARBALL, timeout=180.0, follow_redirects=True) as r:
+        r.raise_for_status()
+        data = b"".join(r.iter_bytes())
+    tmp = Path(tempfile.mkdtemp())
+    try:
+        with tarfile.open(fileobj=io.BytesIO(data)) as tf:
+            tf.extractall(tmp)
+        inner = next(p for p in tmp.iterdir() if p.is_dir())
+        for item in inner.iterdir():
+            if item.name in KEEP:
+                continue
+            dest = ROOT / item.name
+            if item.is_dir():
+                if dest.exists():
+                    shutil.rmtree(dest)
+                shutil.copytree(item, dest)
+            else:
+                shutil.copy2(item, dest)
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+    return {"ok": True, "method": "tarball"}
+
+
+def apply() -> dict:
+    if (ROOT / ".git").exists():
+        res = _apply_git()
+        if res.get("ok"):
+            return res
+    return _apply_tarball()
+
+
+def _restart_later() -> None:
+    time.sleep(1.5)
+    try:
+        subprocess.Popen(["systemctl", "--user", "restart", "it-testare.service"])
+    except Exception:
+        pass
+
+
+def update_and_restart() -> dict:
+    res = apply()
+    try:  # läs in nya versionen
+        res["new_version"] = (ROOT / "version.txt").read_text(encoding="utf-8").strip()
+    except Exception:
+        res["new_version"] = ""
+    # starta om (systemd) strax efter att svaret skickats
+    unit = Path.home() / ".config" / "systemd" / "user" / "it-testare.service"
+    has_systemd = unit.exists() and shutil.which("systemctl") is not None
+    if res.get("ok") and has_systemd:
+        threading.Thread(target=_restart_later, daemon=True).start()
+        res["restart"] = "systemd"
+    else:
+        res["restart"] = "manual"
+    return res

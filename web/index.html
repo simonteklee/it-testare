@@ -364,6 +364,9 @@ async function showTips(){
         + '<button class="act" id="commSync">🔄 Synka gruppen</button>'
         + '<button class="act" id="commList">👥 Gruppens frågor</button></div>'
         + '<div class="actstatus" id="commstatus"></div>'
+        + '<div class="actions" style="margin-top:8px"><span class="tipq" id="verline"></span>'
+        + '<button class="act" id="updBtn">🔄 Uppdatera appen</button></div>'
+        + '<div class="actstatus" id="updstatus"></div>'
         + '<div class="actstatus" id="tipstatus"></div>';
   box.innerHTML = DOMPurify.sanitize(html);
   chat.appendChild(box); document.getElementById('main').scrollTop = 1e9;
@@ -431,6 +434,23 @@ async function showTips(){
       if (items[i]) { inp.value = items[i].q; autosize(); inp.focus(); }
     });
     box.appendChild(list);
+  };
+  // Uppdatera appen
+  let ver = {current:'?', latest:'?', update_available:false};
+  try { ver = await fetch('/api/version').then(r=>r.json()); } catch(e){}
+  box.querySelector('#verline').textContent = 'version ' + ver.current +
+    (ver.update_available ? ' (ny finns: ' + ver.latest + ')' : ' – senaste');
+  box.querySelector('#updBtn').onclick = async () => {
+    const s = box.querySelector('#updstatus');
+    s.textContent = 'hämta senaste…';
+    const r = await fetch('/api/update', {method:'POST'}).then(r=>r.json());
+    if (r.error) { s.textContent = 'fel: ' + r.error; return; }
+    if (r.restart === 'systemd') {
+      s.textContent = 'uppdaterat till ' + (r.new_version||'') + ' – appen startar om…';
+      setTimeout(() => location.reload(), 6000);
+    } else {
+      s.textContent = 'uppdaterat till ' + (r.new_version||'') + ' – stäng och öppna appen igen.';
+    }
   };
 }
 document.getElementById('review').addEventListener('change', async (e) => {
