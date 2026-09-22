@@ -53,6 +53,12 @@
   .sources { margin-top: 10px; border-top: 1px dashed var(--line); padding-top: 8px; }
   .src-title { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
   .src { font-size: 12px; color: var(--muted); word-break: break-all; }
+  .src a { color: var(--accent); text-decoration: none; }
+  .src a:hover { text-decoration: underline; }
+  .attachrow { max-width: 780px; margin: 0 auto 9px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .ghost { background: transparent; border: 1px solid var(--line); color: var(--text); padding: 7px 12px; border-radius: 9px; font-size: 13px; }
+  .ghost:hover { border-color: var(--accent); }
+  .attachstatus { font-size: 12px; color: var(--muted); }
 </style>
 </head>
 <body>
@@ -82,6 +88,14 @@
 </main>
 
 <footer>
+  <div class="attachrow">
+    <button id="attach" class="ghost" type="button">📎 Lägg till källa (fil)</button>
+    <input id="file" type="file" multiple hidden />
+    <label class="ghost" style="display:flex;gap:6px;align-items:center;cursor:pointer">
+      <input id="web" type="checkbox" checked /> 🌐 Webbsök
+    </label>
+    <span id="attachstatus" class="attachstatus"></span>
+  </div>
   <div class="inputrow">
     <textarea id="inp" rows="1" placeholder="Skriv din fråga om test/QA… (Enter = skicka, Skift+Enter = ny rad)"></textarea>
     <button id="send">Skicka</button>
@@ -100,11 +114,14 @@ const statusEl = document.getElementById('status');
 let history = [];
 let busy = false;
 
-fetch('/api/health').then(r => r.json()).then(d => {
-  const ready = (d.providers || []).filter(p => p.ready).map(p => p.name);
-  statusEl.innerHTML = 'pool: <b>' + (ready.join(' → ') || 'ingen') + '</b>' +
-    (d.kb_chunks ? ' · kb:' + d.kb_chunks : '');
-}).catch(() => statusEl.textContent = 'offline');
+function refreshStatus(){
+  fetch('/api/health').then(r => r.json()).then(d => {
+    const ready = (d.providers || []).filter(p => p.ready).map(p => p.name);
+    statusEl.innerHTML = 'pool: <b>' + (ready.join(' → ') || 'ingen') + '</b>' +
+      (d.kb_chunks ? ' · kb:' + d.kb_chunks : '');
+  }).catch(() => statusEl.textContent = 'offline');
+}
+refreshStatus();
 
 function esc(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
 
@@ -118,8 +135,12 @@ function addMsg(role, text, provider, sources){
   }
   if (sources && sources.length){
     const s = document.createElement('div'); s.className = 'sources';
-    s.innerHTML = '<div class="src-title">Källor</div>' + sources.map(x =>
-      '<div class="src">[' + x.n + '] ' + esc(x.source) + (x.url && x.url !== x.source ? ' · ' + esc(x.url) : '') + '</div>').join('');
+    s.innerHTML = '<div class="src-title">Källor (klicka för att öppna)</div>' + sources.map(x => {
+      const label = '[' + x.n + '] ' + esc(x.source);
+      return x.url
+        ? '<div class="src"><a href="' + esc(x.url) + '" target="_blank" rel="noopener">' + label + '</a></div>'
+        : '<div class="src">' + label + '</div>';
+    }).join('');
     div.appendChild(s);
   }
   if (provider){
@@ -149,7 +170,7 @@ async function ask(){
   const thinking = addMsg('assistant', '… tänker');
   try {
     const res = await fetch('/api/chat', {method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({messages: history})});
+      body: JSON.stringify({messages: history, web: document.getElementById('web').checked})});
     const data = await res.json();
     thinking.remove();
     if (data.error){ addMsg('assistant','⚠️ ' + data.error); }
@@ -168,6 +189,29 @@ inp.focus();
 // Deep-länk: /?q=...  → ställ frågan automatiskt
 const _q = new URLSearchParams(location.search).get('q');
 if (_q) { inp.value = _q; autosize(); ask(); }
+
+// Filuppladdning → kunskapsbasen
+const fileBtn = document.getElementById('attach');
+const fileInput = document.getElementById('file');
+const astatus = document.getElementById('attachstatus');
+fileBtn.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', async () => {
+  if (!fileInput.files.length) return;
+  const fd = new FormData();
+  for (const f of fileInput.files) fd.append('files', f);
+  astatus.textContent = 'lägger in ' + fileInput.files.length + ' fil(er)…';
+  try {
+    const r = await fetch('/api/upload', {method:'POST', body:fd});
+    const d = await r.json();
+    const ok = (d.results||[]).filter(x=>x.chunks).reduce((a,x)=>a+x.chunks,0);
+    const err = (d.results||[]).filter(x=>x.error).map(x=>x.file);
+    astatus.textContent = 'klart: +' + ok + ' stycken'
+      + (err.length ? ' (' + err.length + ' misslyckades: ' + err.join(', ') + ')' : '')
+      + ' · kb:' + d.kb_chunks;
+    refreshStatus();
+  } catch(e) { astatus.textContent = 'fel: ' + e; }
+  fileInput.value = '';
+});
 </script>
 </body>
 </html>

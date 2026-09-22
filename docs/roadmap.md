@@ -18,15 +18,15 @@ Byggs fas för fas. Efter varje fas kör vi och kollar att det funkar innan näs
 
 ## Fas 2 — Kunskapsbas (RAG) ✅
 - [x] Lokala embeddings (gratis, ingen kvot) — `fastembed` + `paraphrase-multilingual-MiniLM-L12-v2`.
-- [x] Inläsning av dokument/URL:er via `ingest.py` (html + PDF).
-- [x] Kuraterade testkällor inlästa (sv/en Wikipedia: programvarutestning, software testing, regression, QA). **155 stycken.**
-- [x] Källor visas i svaren (nummer [1]..[n] + käll-lista).
-- [ ] Valfritt: lägg in kursmaterial (`ingest.py <fil>`).
+- [x] Inläsning av **många filtyper** via `ingest.py` / uppladdning i UI:t (pdf, docx/odt/pptx/xlsx via LibreOffice, html, txt, md, csv, json …).
+- [x] Kuraterade testkällor inlästa (sv/en Wikipedia: programvarutestning, software testing, regression, QA).
+- [x] Källor visas i svaren, **klickbara** (öppnar källan/filen).
 
-## Fas 3 — Webbsök mot vitlista
-- [ ] Gratis webbsök (DuckDuckGo/SearXNG).
-- [ ] Vitlista av test-domäner (`data/källor.yaml`).
-- [ ] Svar som väver samman kunskapsbas + webb, alltid med källor.
+## Fas 3 — Webbsök mot vitlista ✅
+- [x] Gratis webbsök (DuckDuckGo) i `app/search.py`.
+- [x] Vitlista av test-domäner (`data/källor.yaml`) + testnyckelord-filter.
+- [x] Svar väver samman kunskapsbas + webb, alltid med källor (klickbara; kb- och webb-källor märks).
+- [x] Toggle i UI (🌐 Webbsök på/av).
 
 ## Fas 4 — Kvalitetssäkring
 - [ ] 👍/👎-feedback som sparas.
