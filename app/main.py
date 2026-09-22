@@ -113,7 +113,7 @@ async def health() -> dict:
             "community": kb.count_kind("community"),
             "qa": feedback.stats(), "review_mode": feedback.load_config().get("review_mode", False),
             "shared_gist": feedback.load_config().get("shared_gist", ""),
-            "community_on": feedback.load_config().get("community_on", False),
+            "community_on": feedback.load_config().get("community_on", True),
             "community_count": community.count()}
 
 
@@ -280,7 +280,7 @@ async def icon512() -> FileResponse:
 @app.get("/api/community")
 async def community_status() -> dict:
     cfg = feedback.load_config()
-    return {"on": cfg.get("community_on", False),
+    return {"on": cfg.get("community_on", True),
             "gist": cfg.get("community_gist") or community.DEFAULT_GIST,
             "count": community.count(),
             "default_gist": community.DEFAULT_GIST}
