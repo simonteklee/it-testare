@@ -53,7 +53,8 @@ class VerifyRequest(BaseModel):
 
 
 class ConfigRequest(BaseModel):
-    review_mode: bool
+    review_mode: bool | None = None
+    shared_gist: str | None = None
 
 
 class ImportRequest(BaseModel):
@@ -105,7 +106,8 @@ async def health() -> dict:
     return {"status": "ok", "app": "IT-testare",
             "providers": available_providers(), "kb_chunks": kb.count(),
             "community": kb.count_kind("community"),
-            "qa": feedback.stats(), "review_mode": feedback.load_config().get("review_mode", False)}
+            "qa": feedback.stats(), "review_mode": feedback.load_config().get("review_mode", False),
+            "shared_gist": feedback.load_config().get("shared_gist", "")}
 
 
 @app.post("/api/chat")
@@ -161,9 +163,26 @@ async def get_config() -> dict:
 @app.post("/api/config")
 async def set_config(req: ConfigRequest) -> dict:
     cfg = feedback.load_config()
-    cfg["review_mode"] = req.review_mode
+    if req.review_mode is not None:
+        cfg["review_mode"] = req.review_mode
+    if req.shared_gist is not None:
+        gid = req.shared_gist.strip()
+        if gid and "/" in gid:
+            gid = gid.rstrip("/").split("/")[-1]
+        cfg["shared_gist"] = gid
     feedback.save_config(cfg)
     return cfg
+
+
+@app.post("/api/sync")
+async def api_sync() -> JSONResponse:
+    gid = feedback.load_config().get("shared_gist", "")
+    if not gid:
+        return JSONResponse({"error": "Ingen delad bas vald."}, status_code=400)
+    try:
+        return JSONResponse(share.sync(gid))
+    except Exception as e:  # noqa: BLE001
+        return JSONResponse({"error": str(e)}, status_code=400)
 
 
 @app.post("/api/feedback")

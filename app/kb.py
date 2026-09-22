@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import json
 import math
+import hashlib
 from pathlib import Path
 
 import httpx
@@ -48,18 +49,30 @@ def load() -> list[dict]:
     return out
 
 
+def _h(text: str) -> str:
+    return hashlib.sha1(text.strip().encode("utf-8")).hexdigest()[:16]
+
+
 def add_documents(docs: list[dict], batch: int = 50) -> int:
-    """docs: [{text, source, url}] → embeddar och lägger till. Returnerar antal."""
+    """docs: [{text, source, url, kind}] → embeddar och lägger till. Hoppar över dubbletter."""
     DATA_DIR.mkdir(parents=True, exist_ok=True)
+    seen = {_h(d["text"]) for d in load()}
+    fresh = []
+    for d in docs:
+        h = _h(d["text"])
+        if h in seen:
+            continue
+        seen.add(h)
+        fresh.append(d)
     added = 0
     with KB_FILE.open("a", encoding="utf-8") as f:
-        for i in range(0, len(docs), batch):
-            part = docs[i : i + batch]
+        for i in range(0, len(fresh), batch):
+            part = fresh[i : i + batch]
             vecs = embed_texts([d["text"] for d in part])
             for d, v in zip(part, vecs):
                 rec = {"text": d["text"], "source": d.get("source", ""),
                        "url": d.get("url", ""), "kind": d.get("kind", "kb"),
-                       "vector": v}
+                       "h": _h(d["text"]), "vector": v}
                 f.write(json.dumps(rec, ensure_ascii=False) + "\n")
                 added += 1
     return added

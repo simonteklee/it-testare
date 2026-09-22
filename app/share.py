@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import subprocess
 import time
 from collections import Counter
@@ -69,6 +70,42 @@ def import_pack(pack: dict) -> dict:
         docs.append({"text": ans, "source": "Community-svar", "url": "", "kind": "community"})
     n = kb.add_documents(docs) if docs else 0
     return {"added": n, "kb_chunks": kb.count(), "community": kb.count_kind("community")}
+
+
+def _vkey(v: dict) -> str:
+    s = (v.get("question", "") + "||" + v.get("answer", "")).encode("utf-8")
+    return hashlib.sha1(s).hexdigest()[:16]
+
+
+def merge_verified(*lists) -> list[dict]:
+    seen, out = set(), []
+    for lst in lists:
+        for v in (lst or []):
+            k = _vkey(v)
+            if k in seen:
+                continue
+            seen.add(k)
+            out.append({"question": v.get("question", ""), "answer": v.get("answer", "")})
+    return out
+
+
+def sync(gist_id: str) -> dict:
+    """Tvåvägssynk mot en delad gist: hämta → slå ihop med lokala → lägg in → putta tillbaka."""
+    try:
+        remote = fetch_gist(gist_id)
+    except Exception:
+        remote = {"verified": []}
+    local = build_pack("svar")
+    merged = merge_verified(remote.get("verified", []), local.get("verified", []))
+    res = import_pack({"verified": merged})
+    try:
+        pushed = publish_gist({"version": PACK_VERSION, "kind": "svar", "created": time.time(),
+                               "verified": merged, "top_questions": local.get("top_questions", [])},
+                              gist_id)
+    except Exception as e:  # noqa: BLE001
+        pushed = {"error": str(e)}
+    return {"pulled": len(remote.get("verified", [])), "merged": len(merged),
+            "pushed": pushed, **res}
 
 
 # ---- GitHub Gist (gratis, använder din gh-inloggning) ----

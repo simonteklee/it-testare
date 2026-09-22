@@ -299,6 +299,9 @@ async function showTips(){
         + '<button class="act" id="shareGist">🔗 Dela via GitHub</button></div>'
         + '<div class="actions"><input class="actinput" id="gistInput" placeholder="gist-id eller länk från en vän" />'
         + '<button class="act" id="fetchGist">⬇ Hämta paket</button></div>'
+        + '<div class="actions"><input class="actinput" id="sharedInput" placeholder="delad bas: gist-id/länk (gemensam med en vän)" />'
+        + '<button class="act" id="saveShared">🔗 Spara</button>'
+        + '<button class="act" id="syncNow">🔄 Synka</button></div>'
         + '<div class="actstatus" id="tipstatus"></div>';
   box.innerHTML = DOMPurify.sanitize(html);
   chat.appendChild(box); document.getElementById('main').scrollTop = 1e9;
@@ -321,6 +324,22 @@ async function showTips(){
     st.textContent = 'hämtar…';
     const r = await fetch('/api/fetch/gist', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({gist_id: gid})}).then(r=>r.json());
     st.textContent = r.error ? ('fel: ' + r.error) : (r.added + ' community-svar hämtade');
+    refreshStatus();
+  };
+  const cfg = await fetch('/api/config').then(r=>r.json());
+  box.querySelector('#sharedInput').value = cfg.shared_gist || '';
+  box.querySelector('#saveShared').onclick = async () => {
+    const v = box.querySelector('#sharedInput').value.trim();
+    const c = await fetch('/api/config', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({shared_gist: v})}).then(r=>r.json());
+    st.textContent = 'delad bas: ' + (c.shared_gist || '(ingen)');
+    refreshStatus();
+  };
+  box.querySelector('#syncNow').onclick = async () => {
+    st.textContent = 'synkar…';
+    const r = await fetch('/api/sync', {method:'POST'}).then(r=>r.json());
+    st.textContent = r.error
+      ? ('fel: ' + r.error)
+      : ('synkat ✓ hämtade ' + r.pulled + ', la till ' + r.added + ' nya (community: ' + r.community + ')');
     refreshStatus();
   };
 }
