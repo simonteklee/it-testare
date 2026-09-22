@@ -4,8 +4,8 @@ En **lokal AI-assistent som bara kan IT-test och kvalitetssäkring**.
 Körs på din dator, öppnas i webbläsaren (app-känsla), svarar helst på svenska,
 **visar alltid källor**, och går att **kvalitetssäkra** (verifiera/markera fel).
 
-> Status: **planeringsfas.** Arkitektur och roadmap finns i `docs/arkitektur.md`.
-> Ingen fungerande kod än — vi bygger fas för fas (se roadmap) och Simon kan följa varje steg.
+> Status: **Fas 1 klar** — MVP-chatt som körs lokalt i webbläsaren (svenska, "bara test",
+> provider-pool med automatisk växling). Källor/citat + kvalitetssäkring kommer i fas 2–4 (se `docs/roadmap.md`).
 
 ## Mål (från Simons krav)
 - Användningsområden: **allt** — tutor (förklara/quiz), slå upp & sammanfatta källor, hjälpa skriva tester/teststrategier.
@@ -18,14 +18,14 @@ Körs på din dator, öppnas i webbläsaren (app-känsla), svarar helst på sven
 - **Helt gratis** (öppen källkod / gratistjänster).
 - Privat sidoprojekt.
 
-## Snabbstart (kommer)
+## Snabbstart
 ```bash
-# när fas 1 är klar
 cd ~/ws/testbot
-cp .env.example .env      # klistra in din gratis API-nyckel
-uv run uvicorn app.main:app --reload
-# öppna http://localhost:8000
+./start.sh          # startar servern (om den inte kör) och öppnar webbläsaren
+# eller: .venv/bin/uvicorn app.main:app --port 8765
+# öppna http://127.0.0.1:8765
 ```
+Nycklar ligger i `.env` (committas aldrig). Provider-pool: Groq → Gemini → Ollama (lokal fallback).
 
 ## Struktur
 ```

@@ -8,13 +8,13 @@ Byggs fas för fas. Efter varje fas kör vi och kollar att det funkar innan näs
 - [ ] Välj **gratis LLM-nyckel** (förslag: Google Gemini).  ← **väntar på Simon**
 - [ ] Bestäm **namn** på boten.
 
-## Fas 1 — MVP: chatt i webbläsaren
-- [ ] FastAPI-backend som körs lokalt.
-- [ ] Enkel chatt-frontend (HTML/JS) i webbläsaren.
-- [ ] LLM-koppling (Gemini gratis) med **svenska**.
-- [ ] "Bara test"-systemprompt + avvisande av off-topic.
-- [ ] Källor/citat för webbresultat (första versionen).
-- [ ] `.desktop`-genväg → känns som en app.
+## Fas 1 — MVP: chatt i webbläsaren ✅
+- [x] FastAPI-backend som körs lokalt (`app/main.py`).
+- [x] Enkel chatt-frontend (HTML/JS) i webbläsaren (`web/index.html`).
+- [x] LLM-koppling med **svenska** + provider-pool (Groq → Gemini → Ollama) (`app/llm.py`).
+- [x] "Bara test"-systemprompt + avvisande av off-topic (`app/prompt.py`).
+- [x] `.desktop`-genväg → känns som en app (`start.sh`, `it-testare.desktop`).
+- [ ] Källor/citat för webbresultat — flyttat till fas 3.
 
 ## Fas 2 — Kunskapsbas (RAG)
 - [ ] Lokala embeddings (gratis) + vektordatabas.

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=IT-testare
+Comment=Lokal AI-assistent för IT-test och kvalitetssäkring
+Exec=/home/simon/ws/testbot/start.sh
+Icon=/home/simon/ws/testbot/web/icon.png
+Terminal=false
+Type=Application
+Categories=Office;Utility;
