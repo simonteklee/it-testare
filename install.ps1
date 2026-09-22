@@ -28,6 +28,7 @@ Remove-Item pkg.b64, pkg.zip -Force
 
 # 3) miljö + paket
 Write-Host "• installerar (tar ~1 min)..."
+if (Test-Path ".venv") { Remove-Item ".venv" -Recurse -Force }
 & $uv venv .venv
 & $uv pip install -q -r requirements.txt
 

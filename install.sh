@@ -41,6 +41,7 @@ if ! command -v uv >/dev/null 2>&1 && [ ! -x "$HOME/.local/bin/uv" ]; then
 fi
 UV="$(command -v uv || echo "$HOME/.local/bin/uv")"
 if [ -x "$UV" ] || command -v "$UV" >/dev/null 2>&1; then
+  rm -rf .venv
   "$UV" venv .venv --python 3.12 >/dev/null 2>&1 || "$UV" venv .venv
   "$UV" pip install -q -r requirements.txt
 else
