@@ -10,4 +10,10 @@ if ! curl -s -m 2 "http://127.0.0.1:$PORT/api/health" >/dev/null 2>&1; then
     sleep 0.5
   done
 fi
+for b in brave-origin-stable brave-browser brave chromium chromium-browser google-chrome; do
+  if command -v "$b" >/dev/null 2>&1; then
+    "$b" --app="http://127.0.0.1:$PORT" >/dev/null 2>&1 &
+    exit 0
+  fi
+done
 xdg-open "http://127.0.0.1:$PORT" >/dev/null 2>&1 &

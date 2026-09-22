@@ -4,6 +4,9 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>IT-testare</title>
+<link rel="manifest" href="/manifest.webmanifest" />
+<meta name="theme-color" content="#2b6ef2" />
+<link rel="apple-touch-icon" href="/icon-192.png" />
 <style>
   :root {
     --bg: #0f1115; --panel: #171a21; --panel2: #1e222b; --line: #2a2f3a;
@@ -286,6 +289,9 @@ async function showPending(){
 
 document.getElementById('pendingBtn').addEventListener('click', showPending);
 document.getElementById('tipsBtn').addEventListener('click', showTips);
+
+// Gör appen installerbar (PWA)
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
 
 async function showTips(){
   let top = [];

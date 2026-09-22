@@ -5,7 +5,7 @@ import shutil
 from pathlib import Path
 
 from fastapi import FastAPI, File, UploadFile
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -244,6 +244,26 @@ async def fetch_gist(req: GistRequest) -> JSONResponse:
         return JSONResponse({**share.import_pack(pack), "from_gist": req.gist_id})
     except Exception as e:  # noqa: BLE001
         return JSONResponse({"error": str(e)}, status_code=400)
+
+
+@app.get("/manifest.webmanifest")
+async def manifest() -> FileResponse:
+    return FileResponse(WEB_DIR / "manifest.webmanifest", media_type="application/manifest+json")
+
+
+@app.get("/sw.js")
+async def service_worker() -> FileResponse:
+    return FileResponse(WEB_DIR / "sw.js", media_type="application/javascript")
+
+
+@app.get("/icon-192.png")
+async def icon192() -> FileResponse:
+    return FileResponse(WEB_DIR / "icon-192.png", media_type="image/png")
+
+
+@app.get("/icon-512.png")
+async def icon512() -> FileResponse:
+    return FileResponse(WEB_DIR / "icon-512.png", media_type="image/png")
 
 
 @app.get("/", response_class=HTMLResponse)

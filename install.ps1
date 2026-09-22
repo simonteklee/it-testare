@@ -58,4 +58,15 @@ Start-Process -WindowStyle Hidden -FilePath "$dir\.venv\Scripts\uvicorn.exe" `
 Start-Sleep -Seconds 3
 Start-Process "http://127.0.0.1:8765"
 Write-Host "Klart! Du kan stanga det har fonstret."
-Write-Host "Nasta gang: dubbelklicka start.cmd i mappen it-testare (kor i bakgrunden, ingen terminal behovs)." -ForegroundColor Green
+# Skapa en genvag pa skrivbordet med ikon
+$ws = New-Object -ComObject WScript.Shell
+$lnk = Join-Path ([Environment]::GetFolderPath('Desktop')) 'IT-testare.lnk'
+$sc = $ws.CreateShortcut($lnk)
+$sc.TargetPath = "$dir\start.vbs"
+$sc.WorkingDirectory = $dir
+$sc.IconLocation = "$dir\web\icon.ico"
+$sc.Description = 'IT-testare - lokal AI for IT-test'
+$sc.Save()
+Write-Host "Genvag 'IT-testare' skapad pa skrivbordet." -ForegroundColor Green
+Write-Host "Nasta gang: dubbelklicka den (kor i bakgrunden, oppnas i app-lage)."
+Write-Host "Tips: i Edge/Chrome gar ocksa menyen -> 'Installera den har appen' for egen ikon i Startmenyn."
