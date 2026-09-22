@@ -24,6 +24,8 @@ svar och kunskap.
 
 ## Snabbstart
 
+**Enklast:** öppna **https://simonteklee.github.io/it-testare/** och välj ditt system (knappar + kopiera).
+
 ### Linux / macOS
 ```bash
 curl -fsSL https://raw.githubusercontent.com/simonteklee/it-testare/main/install.sh | bash
