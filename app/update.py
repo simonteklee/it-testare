@@ -32,11 +32,12 @@ def latest_version() -> str:
     # 1) GitHub API (färskt, ej CDN-cachat)
     try:
         from . import share
-        headers = {"Accept": "application/vnd.github.raw"}
+        headers = {}
         try:
             headers.update(share._gist_headers())
         except Exception:
             pass
+        headers["Accept"] = "application/vnd.github.raw"
         r = httpx.get(f"https://api.github.com/repos/{REPO}/contents/version.txt",
                       headers=headers, timeout=15.0, follow_redirects=True)
         if r.status_code == 200 and r.text.strip():
