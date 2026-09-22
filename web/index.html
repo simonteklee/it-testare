@@ -445,7 +445,7 @@ async function showTips(){
     s.textContent = 'hämta senaste…';
     const r = await fetch('/api/update', {method:'POST'}).then(r=>r.json());
     if (r.error) { s.textContent = 'fel: ' + r.error; return; }
-    if (r.restart === 'systemd') {
+    if (r.restart === 'systemd' || r.restart === 'auto') {
       s.textContent = 'uppdaterat till ' + (r.new_version||'') + ' – appen startar om…';
       setTimeout(() => location.reload(), 6000);
     } else {

@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 import io
+import os
 import shutil
 import subprocess
 import tarfile
@@ -102,7 +103,12 @@ def apply() -> dict:
 def _restart_later() -> None:
     time.sleep(1.5)
     try:
-        subprocess.Popen(["systemctl", "--user", "restart", "it-testare.service"])
+        if os.name == "nt":
+            ps = ("Start-Sleep 2; Get-Process uvicorn -ErrorAction SilentlyContinue | "
+                  f"Stop-Process -Force; Start-Process '{ROOT}\\start.vbs'")
+            subprocess.Popen(["powershell", "-NoProfile", "-Command", ps])
+        else:
+            subprocess.Popen(["systemctl", "--user", "restart", "it-testare.service"])
     except Exception:
         pass
 
@@ -113,12 +119,12 @@ def update_and_restart() -> dict:
         res["new_version"] = (ROOT / "version.txt").read_text(encoding="utf-8").strip()
     except Exception:
         res["new_version"] = ""
-    # starta om (systemd) strax efter att svaret skickats
+    # starta om strax efter att svaret skickats
     unit = Path.home() / ".config" / "systemd" / "user" / "it-testare.service"
-    has_systemd = unit.exists() and shutil.which("systemctl") is not None
-    if res.get("ok") and has_systemd:
+    can_auto = os.name == "nt" or (unit.exists() and shutil.which("systemctl") is not None)
+    if res.get("ok") and can_auto:
         threading.Thread(target=_restart_later, daemon=True).start()
-        res["restart"] = "systemd"
+        res["restart"] = "auto"
     else:
         res["restart"] = "manual"
     return res
