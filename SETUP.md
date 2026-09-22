@@ -67,3 +67,20 @@ Alternativt: **⬇ Ladda ner mitt paket** → skicka filen → vännen importera
 - Allt ligger **lokalt** hos dig; bara själva språkmodellsanropen går till molnet.
 - Verifierade svar och frågor är det enda som delas.
 - Modeller och nycklar är dina egna och gratis.
+
+---
+
+## Windows
+Öppna **PowerShell** (Windows-tangenten → skriv "PowerShell" → Enter) och kör:
+```powershell
+irm https://gist.githubusercontent.com/simonteklee/ba7f30550e6cf986010ecb5759ef4aa7/raw/install.ps1 | iex
+```
+Blockerar Windows skriptet? Kör först:
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+```
+Skriptet installerar allt (via `uv`, inget Python-krav), frågar efter nycklarna och startar.
+Starta om senare: dubbelklicka **`start.cmd`** i mappen `it-testare`.
+
+> Obs: filuppladdning av **PDF/Word/PowerPoint/Excel** fungerar även på Windows (inbyggd läsning via Python).
+> Vissa format (odt/rtf) kan kräva LibreOffice – annars konvertera till PDF/docx.
