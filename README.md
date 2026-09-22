@@ -4,8 +4,8 @@ En **lokal AI-assistent som bara kan IT-test och kvalitetssäkring**.
 Körs på din dator, öppnas i webbläsaren (app-känsla), svarar helst på svenska,
 **visar alltid källor**, och går att **kvalitetssäkra** (verifiera/markera fel).
 
-> Status: **Fas 1 klar** — MVP-chatt som körs lokalt i webbläsaren (svenska, "bara test",
-> provider-pool med automatisk växling). Källor/citat + kvalitetssäkring kommer i fas 2–4 (se `docs/roadmap.md`).
+> Status: **Fas 1 + 2 klara** — MVP-chatt i webbläsaren (svenska, "bara test", provider-pool) **plus
+> kunskapsbas (RAG) med lokala embeddings och källor i svaren**. Webbsök + kvalitetssäkring kommer i fas 3–4 (se `docs/roadmap.md`).
 
 ## Mål (från Simons krav)
 - Användningsområden: **allt** — tutor (förklara/quiz), slå upp & sammanfatta källor, hjälpa skriva tester/teststrategier.

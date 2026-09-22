@@ -16,11 +16,12 @@ Byggs fas för fas. Efter varje fas kör vi och kollar att det funkar innan näs
 - [x] `.desktop`-genväg → känns som en app (`start.sh`, `it-testare.desktop`).
 - [ ] Källor/citat för webbresultat — flyttat till fas 3.
 
-## Fas 2 — Kunskapsbas (RAG)
-- [ ] Lokala embeddings (gratis) + vektordatabas.
-- [ ] Inläsning av dokument (PDF/md) → kunskapsbas.
-- [ ] Kuraterade testkällor som grund (ISTQB m.fl.).
-- [ ] Valfritt: lägg in kursmaterial.
+## Fas 2 — Kunskapsbas (RAG) ✅
+- [x] Lokala embeddings (gratis, ingen kvot) — `fastembed` + `paraphrase-multilingual-MiniLM-L12-v2`.
+- [x] Inläsning av dokument/URL:er via `ingest.py` (html + PDF).
+- [x] Kuraterade testkällor inlästa (sv/en Wikipedia: programvarutestning, software testing, regression, QA). **155 stycken.**
+- [x] Källor visas i svaren (nummer [1]..[n] + käll-lista).
+- [ ] Valfritt: lägg in kursmaterial (`ingest.py <fil>`).
 
 ## Fas 3 — Webbsök mot vitlista
 - [ ] Gratis webbsök (DuckDuckGo/SearXNG).

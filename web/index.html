@@ -40,6 +40,19 @@
   button:disabled { opacity: .5; cursor: default; }
   .note { max-width: 780px; margin: 8px auto 0; font-size: 11px; color: var(--muted); text-align: center; }
   .err { color: var(--warn); font-size: 13px; }
+  .bot table { border-collapse: collapse; margin: 8px 0; width: 100%; font-size: 14px; }
+  .bot th, .bot td { border: 1px solid var(--line); padding: 6px 9px; text-align: left; vertical-align: top; }
+  .bot th { background: #232833; }
+  .bot code { background: #232833; padding: 1px 5px; border-radius: 5px; font-size: 13px; }
+  .bot pre { background: #232833; padding: 11px; border-radius: 9px; overflow-x: auto; }
+  .bot pre code { background: none; padding: 0; }
+  .bot blockquote { margin: 8px 0; padding: 2px 12px; border-left: 3px solid var(--accent); color: var(--muted); }
+  .bot h1,.bot h2,.bot h3 { font-size: 16px; margin: 12px 0 6px; }
+  .bot ul,.bot ol { margin: 6px 0; padding-left: 22px; }
+  .bot p { margin: 6px 0; }
+  .sources { margin-top: 10px; border-top: 1px dashed var(--line); padding-top: 8px; }
+  .src-title { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+  .src { font-size: 12px; color: var(--muted); word-break: break-all; }
 </style>
 </head>
 <body>
@@ -76,6 +89,8 @@
   <div class="note">Källor/citat och kvalitetssäkring (👍/👎, verifiera) kommer i nästa faser.</div>
 </footer>
 
+<script src="/vendor/marked.min.js"></script>
+<script src="/vendor/purify.min.js"></script>
 <script>
 const chat = document.getElementById('chat');
 const empty = document.getElementById('empty');
@@ -87,15 +102,26 @@ let busy = false;
 
 fetch('/api/health').then(r => r.json()).then(d => {
   const ready = (d.providers || []).filter(p => p.ready).map(p => p.name);
-  statusEl.innerHTML = 'pool: <b>' + (ready.join(' → ') || 'ingen') + '</b>';
+  statusEl.innerHTML = 'pool: <b>' + (ready.join(' → ') || 'ingen') + '</b>' +
+    (d.kb_chunks ? ' · kb:' + d.kb_chunks : '');
 }).catch(() => statusEl.textContent = 'offline');
 
 function esc(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
 
-function addMsg(role, text, provider){
+function addMsg(role, text, provider, sources){
   const div = document.createElement('div');
   div.className = 'msg ' + (role === 'user' ? 'user' : 'bot');
-  div.innerHTML = esc(text);
+  if (role === 'user') {
+    div.textContent = text;
+  } else {
+    div.innerHTML = DOMPurify.sanitize(marked.parse(text || ''));
+  }
+  if (sources && sources.length){
+    const s = document.createElement('div'); s.className = 'sources';
+    s.innerHTML = '<div class="src-title">Källor</div>' + sources.map(x =>
+      '<div class="src">[' + x.n + '] ' + esc(x.source) + (x.url && x.url !== x.source ? ' · ' + esc(x.url) : '') + '</div>').join('');
+    div.appendChild(s);
+  }
   if (provider){
     const m = document.createElement('div'); m.className='meta';
     m.textContent = 'svar via ' + provider; div.appendChild(m);
@@ -128,7 +154,7 @@ async function ask(){
     thinking.remove();
     if (data.error){ addMsg('assistant','⚠️ ' + data.error); }
     else {
-      addMsg('assistant', data.answer, data.provider + ' · ' + data.model);
+      addMsg('assistant', data.answer, data.provider + ' · ' + data.model, data.sources);
       history.push({role:'assistant', content: data.answer});
     }
   } catch(e){ thinking.remove(); addMsg('assistant','⚠️ Kunde inte nå servern: ' + e); }
@@ -138,6 +164,10 @@ async function ask(){
 send.addEventListener('click', ask);
 inp.addEventListener('keydown', e => { if (e.key==='Enter' && !e.shiftKey){ e.preventDefault(); ask(); } });
 inp.focus();
+
+// Deep-länk: /?q=...  → ställ frågan automatiskt
+const _q = new URLSearchParams(location.search).get('q');
+if (_q) { inp.value = _q; autosize(); ask(); }
 </script>
 </body>
 </html>
