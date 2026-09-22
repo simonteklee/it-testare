@@ -1,32 +1,31 @@
 # IT-testare - Windows-installation (PowerShell).
-# Enklaste vägen (i PowerShell):
-#   irm https://gist.githubusercontent.com/simonteklee/ba7f30550e6cf986010ecb5759ef4aa7/raw/install.ps1 | iex
+#   irm https://raw.githubusercontent.com/simonteklee/it-testare/main/install.ps1 | iex
 $ErrorActionPreference = "Stop"
 
 $dir = if ($env:IT_TESTARE_DIR) { $env:IT_TESTARE_DIR } else { "$HOME\it-testare" }
-$pkgUrl = "https://gist.githubusercontent.com/simonteklee/ba7f30550e6cf986010ecb5759ef4aa7/raw/it-testare.b64"
+$pkgUrl = "https://codeload.github.com/simonteklee/it-testare/zip/refs/heads/main"
 
 Write-Host "== IT-testare installeras till $dir ==" -ForegroundColor Cyan
 
-# 1) uv (fixar Python automatiskt, inget Python-krav)
+# 1) uv (fixar Python automatiskt)
 if (-not (Get-Command uv -ErrorAction SilentlyContinue) -and -not (Test-Path "$HOME\.local\bin\uv.exe")) {
-    Write-Host "• installerar uv (pakethanterare)..."
+    Write-Host "• installerar uv..."
     powershell -ExecutionPolicy Bypass -Command "irm https://astral.sh/uv/install.ps1 | iex"
 }
 $env:Path = "$HOME\.local\bin;$env:Path"
 $uv = if (Get-Command uv -ErrorAction SilentlyContinue) { "uv" } else { "$HOME\.local\bin\uv.exe" }
 
-# 2) hämta programmet
+# 2) hamta programmet (från GitHub-repot)
 New-Item -ItemType Directory -Force -Path $dir | Out-Null
+Write-Host "• hamtar programmet..."
+Invoke-WebRequest -Uri $pkgUrl -OutFile "$dir\_pkg.zip"
+Expand-Archive -Path "$dir\_pkg.zip" -DestinationPath "$dir\_pkg" -Force
+$inner = (Get-ChildItem "$dir\_pkg" -Directory | Select-Object -First 1).FullName
+Get-ChildItem -Path $inner -Force | Move-Item -Destination $dir -Force
+Remove-Item "$dir\_pkg","$dir\_pkg.zip" -Recurse -Force
 Set-Location $dir
-Write-Host "• hämtar programmet..."
-Invoke-WebRequest -Uri $pkgUrl -OutFile "pkg.b64"
-$b64 = (Get-Content "pkg.b64" -Raw) -replace "\s", ""
-[IO.File]::WriteAllBytes("$dir\pkg.zip", [Convert]::FromBase64String($b64))
-Expand-Archive -Path "pkg.zip" -DestinationPath $dir -Force
-Remove-Item pkg.b64, pkg.zip -Force
 
-# 3) miljö + paket
+# 3) miljo + paket
 Write-Host "• installerar (tar ~1 min)..."
 if (Test-Path ".venv") { Remove-Item ".venv" -Recurse -Force }
 & $uv venv .venv
@@ -35,7 +34,7 @@ if (Test-Path ".venv") { Remove-Item ".venv" -Recurse -Force }
 # 4) nycklar
 $groq = $env:GROQ_API_KEY; $gem = $env:GEMINI_API_KEY
 if (-not $groq -or -not $gem) {
-    Write-Host "`n== Två gratis nycklar behövs (2 min) ==" -ForegroundColor Cyan
+    Write-Host "`n== Tva gratis nycklar behovs (2 min) ==" -ForegroundColor Cyan
     Write-Host "--- Nyckel 1 av 2: GROQ ---"
     Start-Process "https://console.groq.com/keys"
     $groq = Read-Host "  Logga in -> 'Create API Key' -> kopiera. Klistra in har och tryck Enter"
@@ -58,7 +57,7 @@ Start-Process -WindowStyle Hidden -FilePath "$dir\.venv\Scripts\uvicorn.exe" `
 Start-Sleep -Seconds 3
 Start-Process "http://127.0.0.1:8765"
 
-# Genvagar (skrivbord + startmeny)
+# 5) genvagar (skrivbord + startmeny)
 try {
     $ws = New-Object -ComObject WScript.Shell
     $targets = @(([Environment]::GetFolderPath('Desktop')),
@@ -76,8 +75,8 @@ try {
     Write-Host "Genvagar skapade: skrivbord + Startmeny ('IT-testare')." -ForegroundColor Green
 } catch {
     Write-Host "Kunde inte skapa genvag automatiskt: $_" -ForegroundColor Yellow
-    Write-Host "Starta istallet genom att dubbelklicka pa start.cmd i mappen it-testare."
+    Write-Host "Starta istallet: dubbelklicka start.cmd i mappen it-testare."
 }
 
-Write-Host "`nKLART! Du kan stanga det har PowerShell-fonstret."
-Write-Host "Nasta gang: dubbelklicka 'IT-testare' pa skrivbordet eller i Startmenyn." -ForegroundColor Green
+Write-Host "`nKLART! Du kan stanga det har PowerShell-fonstret." -ForegroundColor Green
+Write-Host "Nasta gang: dubbelklicka 'IT-testare' pa skrivbordet eller i Startmenyn."

@@ -5,7 +5,7 @@ Så här gör du:
 1) Öppna en Terminal. På Linux: tryck Ctrl+Alt+T.
 2) Klistra in den här raden och tryck Enter (klistra in med Ctrl+Shift+V):
 
-curl -fsSL https://gist.githubusercontent.com/simonteklee/ba7f30550e6cf986010ecb5759ef4aa7/raw/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/simonteklee/it-testare/main/install.sh | bash
 
 3) Skriptet öppnar två webbsidor och ber om två gratisnycklar (Groq + Gemini).
    Logga in, klicka "Create API key", kopiera och klistra in i terminalen. Tryck Enter.

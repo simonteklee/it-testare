@@ -26,12 +26,12 @@ svar och kunskap.
 
 ### Linux / macOS
 ```bash
-curl -fsSL https://gist.githubusercontent.com/simonteklee/ba7f30550e6cf986010ecb5759ef4aa7/raw/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/simonteklee/it-testare/main/install.sh | bash
 ```
 
 ### Windows (PowerShell)
 ```powershell
-irm https://gist.githubusercontent.com/simonteklee/ba7f30550e6cf986010ecb5759ef4aa7/raw/install.ps1 | iex
+irm https://raw.githubusercontent.com/simonteklee/it-testare/main/install.ps1 | iex
 ```
 
 Skriptet installerar allt (via [`uv`](https://docs.astral.sh/uv/) – inget Python-krav), frågar efter

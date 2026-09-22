@@ -5,7 +5,7 @@ egen dator, i webbläsaren, och kan svara utifrån en kunskapsbas + webbsök, al
 
 ## ⚡ Snabbaste vägen — klistra in EN rad i terminalen
 ```bash
-curl -fsSL https://gist.githubusercontent.com/simonteklee/ba7f30550e6cf986010ecb5759ef4aa7/raw/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/simonteklee/it-testare/main/install.sh | bash
 ```
 Skriptet sköter allt: hämtar programmet, installerar, **frågar efter dina två gratisnycklar** och startar.
 Klart på ~2 minuter.
@@ -73,7 +73,7 @@ Alternativt: **⬇ Ladda ner mitt paket** → skicka filen → vännen importera
 ## Windows
 Öppna **PowerShell** (Windows-tangenten → skriv "PowerShell" → Enter) och kör:
 ```powershell
-irm https://gist.githubusercontent.com/simonteklee/ba7f30550e6cf986010ecb5759ef4aa7/raw/install.ps1 | iex
+irm https://raw.githubusercontent.com/simonteklee/it-testare/main/install.ps1 | iex
 ```
 Blockerar Windows skriptet? Kör först:
 ```powershell

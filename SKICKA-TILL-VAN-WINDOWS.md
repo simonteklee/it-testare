@@ -5,7 +5,7 @@ Så här gör du (Windows):
 1) Öppna PowerShell: tryck på Windows-tangenten, skriv "PowerShell" och tryck Enter.
 2) Klistra in raden nedan och tryck Enter:
 
-irm https://gist.githubusercontent.com/simonteklee/ba7f30550e6cf986010ecb5759ef4aa7/raw/install.ps1 | iex
+irm https://raw.githubusercontent.com/simonteklee/it-testare/main/install.ps1 | iex
 
    (Får du ett fel om "execution policy" – kör först denna rad, sen raden ovan:
     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass)

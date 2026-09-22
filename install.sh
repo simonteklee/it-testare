@@ -1,42 +1,28 @@
 #!/usr/bin/env bash
-# IT-testare — engångsinstallation. Enklaste vägen:
-#   curl -fsSL <LÄNK> | bash
-# eller: bash install.sh
+# IT-testare - engangsinstallation.
+#   curl -fsSL https://raw.githubusercontent.com/simonteklee/it-testare/main/install.sh | bash
 set -euo pipefail
 
-PKG_URL="${IT_TESTARE_PKG_URL:-}"
+PKG_URL="${IT_TESTARE_PKG_URL:-https://codeload.github.com/simonteklee/it-testare/tar.gz/refs/heads/main}"
 DIR="${IT_TESTARE_DIR:-$HOME/it-testare}"
 
 echo "== IT-testare installeras till $DIR =="
 
-if ! command -v python3 >/dev/null 2>&1; then
-  echo "✗ Python 3 saknas. Installera det först:"
-  echo "   Debian/Ubuntu/Mint:  sudo apt install python3 python3-venv"
-  echo "   Fedora:              sudo dnf install python3"
-  echo "   macOS:               brew install python"
-  echo "  … och kör sedan detta igen."
+if ! command -v python3 >/dev/null 2>&1 && ! command -v uv >/dev/null 2>&1 && [ ! -x "$HOME/.local/bin/uv" ]; then
+  echo "! Varken python3 eller uv hittades. Installera python3 (t.ex. sudo apt install python3) och kor igen."
   exit 1
 fi
 
-if [ -z "$PKG_URL" ]; then
-  echo "✗ Ingen paketlänk (IT_TESTARE_PKG_URL) angiven."
-  exit 1
-fi
+mkdir -p "$DIR"
+echo "• hamtar programmet..."
+curl -fsSL "$PKG_URL" -o /tmp/it-testare-pkg.tar.gz
+tar -xzf /tmp/it-testare-pkg.tar.gz -C "$DIR" --strip-components=1
+rm -f /tmp/it-testare-pkg.tar.gz
+cd "$DIR"
 
-mkdir -p "$DIR"; cd "$DIR"
-
-echo "• hämtar programmet…"
-curl -fsSL "$PKG_URL" -o pkg.b64
-if base64 -d pkg.b64 > pkg.zip 2>/dev/null; then :; else base64 -D pkg.b64 > pkg.zip; fi
-if command -v unzip >/dev/null 2>&1; then unzip -oq pkg.zip; else
-  python3 -c "import zipfile; zipfile.ZipFile('pkg.zip').extractall('.')"
-fi
-rm -f pkg.b64 pkg.zip
-
-echo "• skapar python-miljö och installerar (tar ~1 min)…"
-# Använd uv (fristående, kräver inte python3-venv)
+echo "• skapar python-miljo och installerar (tar ~1 min)..."
 if ! command -v uv >/dev/null 2>&1 && [ ! -x "$HOME/.local/bin/uv" ]; then
-  echo "  installerar uv…"
+  echo "  installerar uv..."
   curl -LsSf https://astral.sh/uv/install.sh | sh >/dev/null 2>&1 || true
 fi
 UV="$(command -v uv || echo "$HOME/.local/bin/uv")"
@@ -45,9 +31,8 @@ if [ -x "$UV" ] || command -v "$UV" >/dev/null 2>&1; then
   "$UV" venv .venv --python 3.12 >/dev/null 2>&1 || "$UV" venv .venv
   "$UV" pip install -q -r requirements.txt
 else
-  # fallback: vanlig venv (kan kräva python3-venv-paketet)
+  rm -rf .venv
   python3 -m venv .venv
-  .venv/bin/pip install -q --upgrade pip >/dev/null 2>&1 || true
   .venv/bin/pip install -q -r requirements.txt
 fi
 
@@ -56,18 +41,14 @@ if [ -n "${GROQ_API_KEY:-}" ] && [ -n "${GEMINI_API_KEY:-}" ]; then
   GROQ="$GROQ_API_KEY"; GEM="$GEMINI_API_KEY"
 else
   echo
-  echo "== Två gratis nycklar behövs (2 min) =="
-  echo "Jag öppnar rätt sida i webbläsaren. Skapa en nyckel, kopiera den och klistra in här."
-  echo
+  echo "== Tva gratis nycklar behovs (2 min) =="
+  echo "Skapa en nyckel, kopiera den och klistra in har."
   echo "--- Nyckel 1 av 2: GROQ ---"
   (xdg-open "https://console.groq.com/keys" >/dev/null 2>&1 || open "https://console.groq.com/keys" >/dev/null 2>&1 || true) &
-  echo "  Logga in (GitHub/Google) → 'Create API Key' → kopiera (gsk_...)"
-  read -rp "  Klistra in GROQ-nyckeln här och tryck Enter: " GROQ < /dev/tty
-  echo
+  read -rp "  Klistra in GROQ-nyckeln (gsk_...) och tryck Enter: " GROQ < /dev/tty
   echo "--- Nyckel 2 av 2: GEMINI ---"
   (xdg-open "https://aistudio.google.com/apikey" >/dev/null 2>&1 || open "https://aistudio.google.com/apikey" >/dev/null 2>&1 || true) &
-  echo "  Logga in (Google) → 'Create API key' → kopiera"
-  read -rp "  Klistra in GEMINI-nyckeln här och tryck Enter: " GEM < /dev/tty
+  read -rp "  Klistra in GEMINI-nyckeln och tryck Enter: " GEM < /dev/tty
 fi
 
 cat > .env <<EOF
@@ -81,7 +62,7 @@ chmod 600 .env
 chmod +x start.sh
 
 echo
-echo "✓ Klart! Startar IT-testare…"
+echo "✓ Klart! Startar IT-testare..."
 ./start.sh
-echo "Öppna webbläsaren på: http://127.0.0.1:8765"
-echo "Nästa gång: kör  $DIR/start.sh"
+echo "Oppna webblasaren pa: http://127.0.0.1:8765"
+echo "Nasta gang: kor $DIR/start.sh"
