@@ -247,5 +247,6 @@ async def fetch_gist(req: GistRequest) -> JSONResponse:
 
 
 @app.get("/", response_class=HTMLResponse)
-async def index() -> str:
-    return (WEB_DIR / "index.html").read_text(encoding="utf-8")
+async def index() -> HTMLResponse:
+    html = (WEB_DIR / "index.html").read_text(encoding="utf-8")
+    return HTMLResponse(html, headers={"Cache-Control": "no-store, max-age=0"})
