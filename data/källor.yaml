@@ -1,0 +1,19 @@
+# Vitlista för webbsök (fas 3). Resultat som matchar dessa domäner släpps igenom
+# även om de inte innehåller testnyckelord. Lägg till/ta bort som du vill.
+domains:
+  - wikipedia.org
+  - istqb.org
+  - ministryoftesting.com
+  - guru99.com
+  - softwaretestinghelp.com
+  - tutorialspoint.com
+  - browserstack.com
+  - testrail.com
+  - smartbear.com
+  - atlassian.com
+  - testingexcellence.com
+  - qameta.io
+  - swedq.se
+  - softwaretestingmagazine.com
+  - reqtest.com
+  - martinfowler.com

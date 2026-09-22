@@ -134,6 +134,7 @@ function refreshStatus(){
     const ready = (d.providers || []).filter(p => p.ready).map(p => p.name);
     let s = 'pool: <b>' + (ready.join(' → ') || 'ingen') + '</b>' + (d.kb_chunks ? ' · kb:' + d.kb_chunks : '');
     if (d.qa) s += ' · 👍' + d.qa.up + ' 👎' + d.qa.down + ' ✅' + d.qa.verified;
+    if (d.community_on && d.community_count) s += ' · 🌍' + d.community_count;
     statusEl.innerHTML = s;
     const rb = document.getElementById('review'); if (rb) rb.checked = !!d.review_mode;
     const pb = document.getElementById('pendingBtn');
@@ -308,6 +309,10 @@ async function showTips(){
         + '<div class="actions"><input class="actinput" id="sharedInput" placeholder="delad bas: gist-id/länk (gemensam med en vän)" />'
         + '<button class="act" id="saveShared">🔗 Spara</button>'
         + '<button class="act" id="syncNow">🔄 Synka</button></div>'
+        + '<div class="actions"><label class="ghost" style="display:flex;gap:6px;align-items:center;cursor:pointer"><input id="commOn" type="checkbox" /> 🌍 Gemensam bas (dela frågor & svar)</label>'
+        + '<button class="act" id="commSync">🔄 Synka gruppen</button>'
+        + '<button class="act" id="commList">👥 Gruppens frågor</button></div>'
+        + '<div class="actstatus" id="commstatus"></div>'
         + '<div class="actstatus" id="tipstatus"></div>';
   box.innerHTML = DOMPurify.sanitize(html);
   chat.appendChild(box); document.getElementById('main').scrollTop = 1e9;
@@ -347,6 +352,34 @@ async function showTips(){
       ? ('fel: ' + r.error)
       : ('synkat ✓ hämtade ' + r.pulled + ', la till ' + r.added + ' nya (community: ' + r.community + ')');
     refreshStatus();
+  };
+  // Gemensam bas (community)
+  const cs = box.querySelector('#commstatus');
+  const ccfg = await fetch('/api/community').then(r=>r.json());
+  box.querySelector('#commOn').checked = !!ccfg.on;
+  cs.textContent = ccfg.count ? ('gruppen: ' + ccfg.count + ' frågor/svar') : '';
+  box.querySelector('#commOn').onchange = async (e) => {
+    await fetch('/api/community', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({on: e.target.checked})});
+    cs.textContent = e.target.checked ? 'gemensam bas: PÅ – dina frågor & svar delas med gruppen' : 'gemensam bas: av';
+    refreshStatus();
+  };
+  box.querySelector('#commSync').onclick = async () => {
+    cs.textContent = 'synkar…';
+    const r = await fetch('/api/community/sync', {method:'POST'}).then(r=>r.json());
+    cs.textContent = r.error ? ('fel: ' + r.error) : ('synkat ✓ gruppen har nu ' + r.total + ' frågor/svar');
+    refreshStatus();
+  };
+  box.querySelector('#commList').onclick = async () => {
+    const r = await fetch('/api/community/list').then(r=>r.json());
+    const items = r.items || [];
+    const list = document.createElement('div');
+    list.innerHTML = items.length
+      ? items.map(x => '<div class="tipq" style="cursor:pointer">→ ' + esc((x.q||'').slice(0,90)) + '</div>').join('')
+      : '<div class="tipq">Inget delat än. Slå på Gemensam bas och klicka Synka.</div>';
+    Array.from(list.children).forEach((el, i) => el.onclick = () => {
+      if (items[i]) { inp.value = items[i].q; autosize(); inp.focus(); }
+    });
+    box.appendChild(list);
   };
 }
 document.getElementById('review').addEventListener('change', async (e) => {

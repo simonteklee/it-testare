@@ -1,6 +1,11 @@
-# lokalt/hemligt
+# lokalt / hemligt
 .env
-data/
-__pycache__/
-.venv/
+data/*
 !data/källor.yaml
+docs/img/*.old
+
+# genererat
+dist/
+__pycache__/
+*.pyc
+.venv/

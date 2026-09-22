@@ -157,3 +157,25 @@ def fetch_gist(gist_id: str) -> dict:
         if fn.endswith(".json"):
             return json.loads(f["content"])
     raise RuntimeError("ingen json-fil i gisten")
+
+
+def get_gist(gist_id: str) -> dict:
+    """Hämta hela gisten (metadata + alla filer)."""
+    import httpx
+    with httpx.Client(timeout=30.0) as c:
+        r = c.get(f"https://api.github.com/gists/{gist_id}", headers=_gist_headers())
+        if r.status_code != 200:
+            raise RuntimeError(f"gist {r.status_code}")
+        return r.json()
+
+
+def put_file(gist_id: str, filename: str, content: str, description: str = "IT-testare") -> dict:
+    """Skriv/uppdatera en fil i en gist."""
+    import httpx
+    with httpx.Client(timeout=60.0) as c:
+        r = c.patch(f"https://api.github.com/gists/{gist_id}", headers=_gist_headers(),
+                    json={"description": description,
+                          "files": {filename: {"content": content}}})
+        if r.status_code not in (200, 201):
+            raise RuntimeError(f"gist {r.status_code}: {r.text[:200]}")
+        return r.json()

@@ -9,7 +9,7 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from . import extract, feedback, kb, search, share
+from . import community, extract, feedback, kb, search, share
 from .llm import ProviderError, available_providers, generate
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -65,6 +65,11 @@ class GistRequest(BaseModel):
     gist_id: str = ""
 
 
+class CommunityRequest(BaseModel):
+    on: bool | None = None
+    gist: str | None = None
+
+
 def gather(query: str, use_web: bool) -> tuple[str, list[dict]]:
     """Samlar kontext + källor från kunskapsbas och (valfritt) webbsök."""
     parts: list[str] = []
@@ -107,7 +112,9 @@ async def health() -> dict:
             "providers": available_providers(), "kb_chunks": kb.count(),
             "community": kb.count_kind("community"),
             "qa": feedback.stats(), "review_mode": feedback.load_config().get("review_mode", False),
-            "shared_gist": feedback.load_config().get("shared_gist", "")}
+            "shared_gist": feedback.load_config().get("shared_gist", ""),
+            "community_on": feedback.load_config().get("community_on", False),
+            "community_count": community.count()}
 
 
 @app.post("/api/chat")
@@ -120,6 +127,10 @@ async def chat(req: ChatRequest) -> JSONResponse:
     context, sources = gather(last_user, req.web)
     try:
         result = await generate(msgs, context=context or None)
+        try:
+            community.log_qa(last_user, result.get("answer", ""), result.get("provider", ""))
+        except Exception:
+            pass
         return JSONResponse({**result, "sources": sources})
     except ProviderError as e:
         return JSONResponse({"error": str(e)}, status_code=502)
@@ -264,6 +275,44 @@ async def icon192() -> FileResponse:
 @app.get("/icon-512.png")
 async def icon512() -> FileResponse:
     return FileResponse(WEB_DIR / "icon-512.png", media_type="image/png")
+
+
+@app.get("/api/community")
+async def community_status() -> dict:
+    cfg = feedback.load_config()
+    return {"on": cfg.get("community_on", False),
+            "gist": cfg.get("community_gist") or community.DEFAULT_GIST,
+            "count": community.count(),
+            "default_gist": community.DEFAULT_GIST}
+
+
+@app.post("/api/community")
+async def community_set(req: CommunityRequest) -> dict:
+    cfg = feedback.load_config()
+    if req.on is not None:
+        cfg["community_on"] = req.on
+    if req.gist is not None:
+        gid = req.gist.strip()
+        if "/" in gid:
+            gid = gid.rstrip("/").split("/")[-1]
+        cfg["community_gist"] = gid or community.DEFAULT_GIST
+    feedback.save_config(cfg)
+    return cfg
+
+
+@app.post("/api/community/sync")
+async def community_sync() -> JSONResponse:
+    cfg = feedback.load_config()
+    gid = cfg.get("community_gist") or community.DEFAULT_GIST
+    try:
+        return JSONResponse(community.pull_push(gid))
+    except Exception as e:  # noqa: BLE001
+        return JSONResponse({"error": str(e)}, status_code=400)
+
+
+@app.get("/api/community/list")
+async def community_list() -> dict:
+    return {"items": community.all_qa()[:60]}
 
 
 @app.get("/", response_class=HTMLResponse)
