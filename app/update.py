@@ -29,6 +29,21 @@ KEEP = {".env", "data", ".venv", "dist", ".git"}
 
 
 def latest_version() -> str:
+    # 1) GitHub API (färskt, ej CDN-cachat)
+    try:
+        from . import share
+        headers = {"Accept": "application/vnd.github.raw"}
+        try:
+            headers.update(share._gist_headers())
+        except Exception:
+            pass
+        r = httpx.get(f"https://api.github.com/repos/{REPO}/contents/version.txt",
+                      headers=headers, timeout=15.0, follow_redirects=True)
+        if r.status_code == 200 and r.text.strip():
+            return r.text.strip()
+    except Exception:
+        pass
+    # 2) raw (kan vara cachat nagon minut)
     try:
         import time as _t
         r = httpx.get(f"{RAW}/version.txt?t={int(_t.time())}", timeout=15.0, follow_redirects=True)
