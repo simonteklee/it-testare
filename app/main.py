@@ -9,7 +9,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from . import extract, kb, search
+from . import extract, feedback, kb, search
 from .llm import ProviderError, available_providers, generate
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -34,6 +34,26 @@ class ChatRequest(BaseModel):
 
 class UrlRequest(BaseModel):
     url: str
+
+
+class FeedbackRequest(BaseModel):
+    question: str = ""
+    answer: str = ""
+    provider: str = ""
+    model: str = ""
+    vote: str = ""
+    comment: str = ""
+
+
+class VerifyRequest(BaseModel):
+    question: str = ""
+    answer: str = ""
+    provider: str = ""
+    model: str = ""
+
+
+class ConfigRequest(BaseModel):
+    review_mode: bool
 
 
 def gather(query: str, use_web: bool) -> tuple[str, list[dict]]:
@@ -75,7 +95,8 @@ def gather(query: str, use_web: bool) -> tuple[str, list[dict]]:
 @app.get("/api/health")
 async def health() -> dict:
     return {"status": "ok", "app": "IT-testare",
-            "providers": available_providers(), "kb_chunks": kb.count()}
+            "providers": available_providers(), "kb_chunks": kb.count(),
+            "qa": feedback.stats(), "review_mode": feedback.load_config().get("review_mode", False)}
 
 
 @app.post("/api/chat")
@@ -120,6 +141,46 @@ async def ingest_url(req: UrlRequest) -> dict:
         return {"url": req.url, "chunks": n, "kb_chunks": kb.count()}
     except Exception as e:  # noqa: BLE001
         return JSONResponse({"error": str(e)}, status_code=400)
+
+
+@app.get("/api/config")
+async def get_config() -> dict:
+    return feedback.load_config()
+
+
+@app.post("/api/config")
+async def set_config(req: ConfigRequest) -> dict:
+    cfg = feedback.load_config()
+    cfg["review_mode"] = req.review_mode
+    feedback.save_config(cfg)
+    return cfg
+
+
+@app.post("/api/feedback")
+async def api_feedback(req: FeedbackRequest) -> dict:
+    feedback.add_feedback(req.model_dump())
+    return {"ok": True, "qa": feedback.stats()}
+
+
+@app.post("/api/verify")
+async def api_verify(req: VerifyRequest) -> dict:
+    res = feedback.verify(req.model_dump())
+    return {**res, "qa": feedback.stats()}
+
+
+@app.get("/api/pending")
+async def api_pending() -> dict:
+    return {"items": feedback.list_pending()}
+
+
+@app.post("/api/pending/{index}/approve")
+async def api_approve(index: int) -> dict:
+    return feedback.approve(index)
+
+
+@app.post("/api/pending/{index}/reject")
+async def api_reject(index: int) -> dict:
+    return feedback.reject(index)
 
 
 @app.get("/", response_class=HTMLResponse)

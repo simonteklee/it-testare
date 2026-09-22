@@ -59,6 +59,13 @@
   .ghost { background: transparent; border: 1px solid var(--line); color: var(--text); padding: 7px 12px; border-radius: 9px; font-size: 13px; }
   .ghost:hover { border-color: var(--accent); }
   .attachstatus { font-size: 12px; color: var(--muted); }
+  .actions { margin-top: 9px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .act { background: transparent; border: 1px solid var(--line); color: var(--text); border-radius: 8px; padding: 4px 9px; font-size: 13px; cursor: pointer; }
+  .act:hover { border-color: var(--accent); }
+  .actstatus { font-size: 12px; color: var(--ok); }
+  .badge input { vertical-align: middle; margin-right: 4px; }
+  .pending-item { border: 1px solid var(--line); border-radius: 10px; padding: 10px; margin: 6px 0; background: var(--panel2); }
+  .pending-item .q { color: var(--muted); font-size: 12px; margin-bottom: 6px; }
 </style>
 </head>
 <body>
@@ -69,6 +76,8 @@
     <div class="sub">Endast IT-test &amp; kvalitetssäkring</div>
   </div>
   <div class="spacer"></div>
+  <label class="badge" title="Nya verifierade svar läggs i en kö för granskning"><input id="review" type="checkbox" />🔎 granska</label>
+  <button id="pendingBtn" class="badge" hidden>Granska (0)</button>
   <div class="badge" id="status">ansluter…</div>
 </header>
 
@@ -117,15 +126,19 @@ let busy = false;
 function refreshStatus(){
   fetch('/api/health').then(r => r.json()).then(d => {
     const ready = (d.providers || []).filter(p => p.ready).map(p => p.name);
-    statusEl.innerHTML = 'pool: <b>' + (ready.join(' → ') || 'ingen') + '</b>' +
-      (d.kb_chunks ? ' · kb:' + d.kb_chunks : '');
+    let s = 'pool: <b>' + (ready.join(' → ') || 'ingen') + '</b>' + (d.kb_chunks ? ' · kb:' + d.kb_chunks : '');
+    if (d.qa) s += ' · 👍' + d.qa.up + ' 👎' + d.qa.down + ' ✅' + d.qa.verified;
+    statusEl.innerHTML = s;
+    const rb = document.getElementById('review'); if (rb) rb.checked = !!d.review_mode;
+    const pb = document.getElementById('pendingBtn');
+    if (pb){ const np = (d.qa && d.qa.pending) || 0; pb.hidden = np === 0; pb.textContent = 'Granska (' + np + ')'; }
   }).catch(() => statusEl.textContent = 'offline');
 }
 refreshStatus();
 
 function esc(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
 
-function addMsg(role, text, provider, sources){
+function addMsg(role, text, provider, sources, ctx){
   const div = document.createElement('div');
   div.className = 'msg ' + (role === 'user' ? 'user' : 'bot');
   if (role === 'user') {
@@ -142,6 +155,17 @@ function addMsg(role, text, provider, sources){
         : '<div class="src">' + label + '</div>';
     }).join('');
     div.appendChild(s);
+  }
+  if (ctx){
+    const row = document.createElement('div'); row.className = 'actions';
+    const st = document.createElement('span'); st.className = 'actstatus';
+    const up = document.createElement('button'); up.className='act'; up.textContent='👍'; up.title='Bra svar';
+    const dn = document.createElement('button'); dn.className='act'; dn.textContent='👎'; dn.title='Dåligt svar';
+    const vf = document.createElement('button'); vf.className='act'; vf.textContent='✅ Verifiera'; vf.title='Markera svaret som verifierat (betrodd kunskapsbank)';
+    up.onclick = () => { sendFeedback(ctx, 'up'); st.textContent = 'tack! 👍'; };
+    dn.onclick = () => { sendFeedback(ctx, 'down'); st.textContent = 'tack! 👎'; };
+    vf.onclick = () => verifyAnswer(ctx, st);
+    row.append(up, dn, vf, st); div.appendChild(row);
   }
   if (provider){
     const m = document.createElement('div'); m.className='meta';
@@ -175,7 +199,8 @@ async function ask(){
     thinking.remove();
     if (data.error){ addMsg('assistant','⚠️ ' + data.error); }
     else {
-      addMsg('assistant', data.answer, data.provider + ' · ' + data.model, data.sources);
+      addMsg('assistant', data.answer, data.provider + ' · ' + data.model, data.sources,
+             {question: text, answer: data.answer, provider: data.provider, model: data.model});
       history.push({role:'assistant', content: data.answer});
     }
   } catch(e){ thinking.remove(); addMsg('assistant','⚠️ Kunde inte nå servern: ' + e); }
@@ -211,6 +236,55 @@ fileInput.addEventListener('change', async () => {
     refreshStatus();
   } catch(e) { astatus.textContent = 'fel: ' + e; }
   fileInput.value = '';
+});
+
+// ---- Kvalitetssäkring (fas 4) ----
+async function sendFeedback(ctx, vote){
+  try {
+    await fetch('/api/feedback', {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({...ctx, vote})});
+  } catch(e){}
+}
+
+async function verifyAnswer(ctx, statusEl){
+  statusEl.textContent = 'verifierar…';
+  try {
+    const r = await fetch('/api/verify', {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(ctx)});
+    const d = await r.json();
+    if (d.status === 'verified') statusEl.textContent = '✅ verifierat – tillagt i kunskapsbasen (+' + d.chunks + ')';
+    else if (d.status === 'pending') statusEl.textContent = '🕓 skickat till granskning';
+    else statusEl.textContent = d.error || 'fel';
+  } catch(e){ statusEl.textContent = 'fel: ' + e; }
+  refreshStatus();
+}
+
+async function showPending(){
+  const r = await fetch('/api/pending'); const d = await r.json();
+  const items = d.items || [];
+  const box = document.createElement('div'); box.className = 'msg bot';
+  if (!items.length){ box.textContent = 'Inget väntar på granskning. 🎉'; chat.appendChild(box); return; }
+  box.innerHTML = '<b>Granskningskö (' + items.length + ')</b>';
+  items.forEach((it, i) => {
+    const el = document.createElement('div'); el.className = 'pending-item';
+    const q = document.createElement('div'); q.className='q'; q.textContent = 'Fråga: ' + (it.question || '').slice(0,140);
+    const a = document.createElement('div'); a.textContent = (it.answer || '').slice(0,400) + ((it.answer||'').length>400?' …':'');
+    const row = document.createElement('div'); row.className='actions';
+    const ok = document.createElement('button'); ok.className='act'; ok.textContent='✅ Godkänn';
+    const no = document.createElement('button'); no.className='act'; no.textContent='✖ Avvisa';
+    ok.onclick = async () => { await fetch('/api/pending/'+i+'/approve',{method:'POST'}); el.remove(); refreshStatus(); };
+    no.onclick = async () => { await fetch('/api/pending/'+i+'/reject',{method:'POST'}); el.remove(); refreshStatus(); };
+    row.append(ok, no);
+    el.append(q, a, row); box.appendChild(el);
+  });
+  chat.appendChild(box); document.getElementById('main').scrollTop = 1e9;
+}
+
+document.getElementById('pendingBtn').addEventListener('click', showPending);
+document.getElementById('review').addEventListener('change', async (e) => {
+  const cfg = await fetch('/api/config', {method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({review_mode: e.target.checked})}).then(r=>r.json());
+  document.getElementById('attachstatus').textContent = cfg.review_mode ? 'granskningsläge: PÅ' : 'granskningsläge: av';
 });
 </script>
 </body>
