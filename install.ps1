@@ -52,6 +52,10 @@ GEMINI_MODEL=gemini-3.6-flash
 EMBED_MODEL=sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
 "@ | Set-Content -Encoding UTF8 ".env"
 
-Write-Host "`n✓ Klart! Startar IT-testare..." -ForegroundColor Green
+Write-Host "`n✓ Klart! Startar IT-testare i bakgrunden..." -ForegroundColor Green
+Start-Process -WindowStyle Hidden -FilePath "$dir\.venv\Scripts\uvicorn.exe" `
+    -ArgumentList "app.main:app --host 127.0.0.1 --port 8765" -WorkingDirectory $dir
+Start-Sleep -Seconds 3
 Start-Process "http://127.0.0.1:8765"
-& "$dir\.venv\Scripts\uvicorn.exe" app.main:app --host 127.0.0.1 --port 8765
+Write-Host "Klart! Du kan stanga det har fonstret."
+Write-Host "Nasta gang: dubbelklicka start.cmd i mappen it-testare (kor i bakgrunden, ingen terminal behovs)." -ForegroundColor Green
