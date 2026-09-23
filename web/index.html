@@ -163,6 +163,10 @@
   </div>
   <div id="paneChat" class="pane">
     <div id="chatinfo" class="tipq" style="margin-bottom:8px">laddar…</div>
+    <div class="chatrow" style="margin:0 0 8px">
+      <span class="tipq">Du skriver som</span>
+      <input id="chatName" class="actinput" style="flex:1" placeholder="ditt namn" />
+    </div>
     <div id="chatList" class="chatlist"><div class="tipq">laddar…</div></div>
     <div class="chatrow">
       <button id="chatAttach" class="ghost" type="button" title="Skicka bild eller fil">📎</button>
@@ -507,6 +511,8 @@ async function loadChat(){
     const d = await fetch('/api/classchat').then(r=>r.json());
     const info = document.getElementById('chatinfo');
     if (info) info.textContent = d.on ? '💬 Klasschatt – allt försvinner efter 24 h' : '💬 Chatten är avstängd';
+    const nm = document.getElementById('chatName');
+    if (nm && document.activeElement !== nm && d.name) nm.value = d.name;
     renderChat(d.messages || [], d.name || '');
   } catch(e){}
 }
@@ -541,6 +547,11 @@ document.querySelectorAll('#side .tab').forEach(b => b.addEventListener('click',
   if (b.dataset.tab === 'chat') loadChat();
 }));
 document.getElementById('chatSendBtn').addEventListener('click', sendChat);
+document.getElementById('chatName').addEventListener('change', async (e) => {
+  const v = e.target.value.trim();
+  try { await fetch('/api/config', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({chat_name: v})}); } catch(err){}
+  loadChat();
+});
 document.getElementById('chatText').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); sendChat(); } });
 document.getElementById('chatAttach').addEventListener('click', () => document.getElementById('chatFile').click());
 document.getElementById('chatFile').addEventListener('change', e => { const f = e.target.files[0]; if (f) attachChat(f); e.target.value = ''; });
