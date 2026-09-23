@@ -131,7 +131,7 @@ def _gist_headers() -> dict:
 def publish_gist(pack: dict, gist_id: str | None = None) -> dict:
     import httpx
     payload = {
-        "description": "IT-testare – delat kunskapspaket",
+        "description": "TestARN – delat kunskapspaket",
         "public": False,
         "files": {"it-testare-paket.json": {"content": json.dumps(pack, ensure_ascii=False, indent=2)}},
     }
@@ -169,7 +169,7 @@ def get_gist(gist_id: str) -> dict:
         return r.json()
 
 
-def put_file(gist_id: str, filename: str, content: str, description: str = "IT-testare") -> dict:
+def put_file(gist_id: str, filename: str, content: str, description: str = "TestARN") -> dict:
     """Skriv/uppdatera en fil i en gist."""
     import httpx
     with httpx.Client(timeout=60.0) as c:

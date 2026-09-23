@@ -1,6 +1,6 @@
 # Dela & gemensam bas
 
-IT-testare körs lokalt hos var och en. Kopplingen mellan användare sker via en **delad GitHub-gist**
+TestARN körs lokalt hos var och en. Kopplingen mellan användare sker via en **delad GitHub-gist**
 (en liten textfil som apparna läser/skriver).
 
 ## Snabbaste vägen (rekommenderas)

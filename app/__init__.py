@@ -1,2 +1,2 @@
-"""IT-testare — version."""
-__version__ = "1.3.1"
+"""TestARN — version."""
+__version__ = "1.4.0"

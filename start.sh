@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# IT-testare — startar servern (om den inte redan kör) och öppnar webbläsaren.
+# TestARN — startar servern (om den inte redan kör) och öppnar webbläsaren.
 set -e
 cd "$(dirname "$0")"
 PORT=8765

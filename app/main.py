@@ -1,4 +1,4 @@
-"""IT-testare — FastAPI-backend (Fas 3: RAG + webbsök + källor + filuppladdning)."""
+"""TestARN — FastAPI-backend (Fas 3: RAG + webbsök + källor + filuppladdning)."""
 from __future__ import annotations
 
 import shutil
@@ -17,7 +17,7 @@ WEB_DIR = ROOT / "web"
 UPLOAD_DIR = ROOT / "data" / "uploads"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
-app = FastAPI(title="IT-testare", version="0.3.0")
+app = FastAPI(title="TestARN", version="0.3.0")
 app.mount("/vendor", StaticFiles(directory=WEB_DIR / "vendor"), name="vendor")
 app.mount("/files", StaticFiles(directory=UPLOAD_DIR), name="files")
 
@@ -30,6 +30,8 @@ class Message(BaseModel):
 class ChatRequest(BaseModel):
     messages: list[Message]
     web: bool = True
+    thread: str = ""
+    parent: str = ""
 
 
 class UrlRequest(BaseModel):
@@ -108,7 +110,7 @@ def gather(query: str, use_web: bool) -> tuple[str, list[dict]]:
 
 @app.get("/api/health")
 async def health() -> dict:
-    return {"status": "ok", "app": "IT-testare",
+    return {"status": "ok", "app": "TestARN",
             "providers": available_providers(), "kb_chunks": kb.count(),
             "community": kb.count_kind("community"),
             "qa": feedback.stats(), "review_mode": feedback.load_config().get("review_mode", False),
@@ -127,11 +129,13 @@ async def chat(req: ChatRequest) -> JSONResponse:
     context, sources = gather(last_user, req.web)
     try:
         result = await generate(msgs, context=context or None)
+        qa_id = ""
         try:
-            community.log_qa(last_user, result.get("answer", ""), result.get("provider", ""))
+            qa_id = community.log_qa(last_user, result.get("answer", ""),
+                                     result.get("provider", ""), req.thread, req.parent)
         except Exception:
             pass
-        return JSONResponse({**result, "sources": sources})
+        return JSONResponse({**result, "sources": sources, "qa_id": qa_id})
     except ProviderError as e:
         return JSONResponse({"error": str(e)}, status_code=502)
 

@@ -1,4 +1,4 @@
-# IT-testare 🧩
+# TestARN 🧩
 
 **En lokal AI-assistent som bara kan IT-test & kvalitetssäkring.** Den körs på din egen dator,
 svarar på svenska, visar alltid källor — och kan kopplas ihop med andra så att ni delar frågor,
@@ -7,7 +7,7 @@ svar och kunskap.
 > Byggd för att vara **gratis**, **privat** och **enkel att komma igång med**. Bara själva
 > språkmodellsanropet lämnar datorn.
 
-![IT-testare](docs/img/app.png)
+![TestARN](docs/img/app.png)
 
 ## Funktioner
 

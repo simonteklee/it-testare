@@ -1,4 +1,4 @@
-Hej! Här är IT-testare — en liten gratis AI-assistent som bara kan IT-test & kvalitetssäkring.
+Hej! Här är TestARN — en liten gratis AI-assistent som bara kan IT-test & kvalitetssäkring.
 Den körs på din egen dator (inget konto behövs, allt är lokalt).
 
 Så här gör du (Windows):

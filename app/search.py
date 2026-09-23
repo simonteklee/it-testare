@@ -11,7 +11,7 @@ from pathlib import Path
 
 import httpx
 
-HEADERS = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) IT-testare/0.1"}
+HEADERS = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) TestARN/0.1"}
 WHITELIST_FILE = Path(__file__).resolve().parent.parent / "data" / "källor.yaml"
 
 # Nyckelord som visar att ett resultat handlar om test/QA.

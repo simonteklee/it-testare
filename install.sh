@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# IT-testare - engangsinstallation.
+# TestARN - engangsinstallation.
 #   curl -fsSL https://raw.githubusercontent.com/simonteklee/it-testare/main/install.sh | bash
 set -euo pipefail
 
 PKG_URL="${IT_TESTARE_PKG_URL:-https://codeload.github.com/simonteklee/it-testare/tar.gz/refs/heads/main}"
 DIR="${IT_TESTARE_DIR:-$HOME/it-testare}"
 
-echo "== IT-testare installeras till $DIR =="
+echo "== TestARN installeras till $DIR =="
 
 if ! command -v python3 >/dev/null 2>&1 && ! command -v uv >/dev/null 2>&1 && [ ! -x "$HOME/.local/bin/uv" ]; then
   echo "! Varken python3 eller uv hittades. Installera python3 (t.ex. sudo apt install python3) och kor igen."
@@ -62,7 +62,7 @@ chmod 600 .env
 chmod +x start.sh
 
 echo
-echo "✓ Klart! Startar IT-testare..."
+echo "✓ Klart! Startar TestARN..."
 ./start.sh
 echo "Oppna webblasaren pa: http://127.0.0.1:8765"
 echo "Nasta gang: kor $DIR/start.sh"

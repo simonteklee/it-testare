@@ -1,4 +1,4 @@
-# IT-testare — beroenden. Medvetet utan plattformsspecifika paket (t.ex. uvloop)
+# TestARN — beroenden. Medvetet utan plattformsspecifika paket (t.ex. uvloop)
 # så installationen fungerar både på Linux, macOS och Windows.
 fastapi
 uvicorn

@@ -1,4 +1,4 @@
-# IT-testare — så kom igång (för dig som får appen)
+# TestARN — så kom igång (för dig som får appen)
 
 En **lokal AI-assistent som bara svarar om IT-test och kvalitetssäkring**. Den körs på din
 egen dator, i webbläsaren, och kan svara utifrån en kunskapsbas + webbsök, alltid med källor.
@@ -59,7 +59,7 @@ Ni kan dela kunskap med varandra via en **gemensam gist**:
 1. En av er klickar **💡 tips & dela → 🔗 Dela via GitHub** → får en länk.
 2. Båda klistrar in **samma gist-id/länk** under *"delad bas"* och klickar **🔗 Spara**.
 3. Klicka **🔄 Synka** — nu hämtas varandras **verifierade svar** (märkta som *community*) och
-   ert gemensamma kunskapsläge skickas tillbaka. Ert IT-testare "växer ihop".
+   ert gemensamma kunskapsläge skickas tillbaka. Ert TestARN "växer ihop".
 
 Alternativt: **⬇ Ladda ner mitt paket** → skicka filen → vännen importerar via **⬇ Hämta paket**.
 

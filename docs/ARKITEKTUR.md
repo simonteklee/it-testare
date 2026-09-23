@@ -1,6 +1,6 @@
 # Arkitektur
 
-IT-testare är en **lokal webbapp**: en liten FastAPI-server på `127.0.0.1:8765` som serverar ett
+TestARN är en **lokal webbapp**: en liten FastAPI-server på `127.0.0.1:8765` som serverar ett
 enkelt gränssnitt och orkestrerar språkmodeller, kunskap och delning.
 
 ```

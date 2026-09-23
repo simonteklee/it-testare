@@ -1,5 +1,5 @@
 [Desktop Entry]
-Name=IT-testare
+Name=TestARN
 Comment=Lokal AI-assistent för IT-test och kvalitetssäkring
 Exec=/home/simon/ws/testbot/start.sh
 Icon=/home/simon/ws/testbot/web/icon.png

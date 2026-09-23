@@ -1,4 +1,4 @@
-' IT-testare - startar servern i bakgrunden (dolt) och oppnar i app-lage (eget fonster).
+' TestARN - startar servern i bakgrunden (dolt) och oppnar i app-lage (eget fonster).
 Set sh = CreateObject("WScript.Shell")
 Set fso = CreateObject("Scripting.FileSystemObject")
 dir = fso.GetParentFolderName(WScript.ScriptFullName)

@@ -13,7 +13,7 @@ Byggs fas för fas. Efter varje fas kör vi och kollar att det funkar innan näs
 - [x] Enkel chatt-frontend (HTML/JS) i webbläsaren (`web/index.html`).
 - [x] LLM-koppling med **svenska** + provider-pool (Groq → Gemini → Ollama) (`app/llm.py`).
 - [x] "Bara test"-systemprompt + avvisande av off-topic (`app/prompt.py`).
-- [x] `.desktop`-genväg → känns som en app (`start.sh`, `it-testare.desktop`).
+- [x] `.desktop`-genväg → känns som en app (`start.sh`, `testarn.desktop`).
 - [ ] Källor/citat för webbresultat — flyttat till fas 3.
 
 ## Fas 2 — Kunskapsbas (RAG) ✅

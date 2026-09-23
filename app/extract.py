@@ -8,7 +8,7 @@ from pathlib import Path
 
 import httpx
 
-HEADERS = {"User-Agent": "IT-testare/0.1 (privat studieverktyg)"}
+HEADERS = {"User-Agent": "TestARN/0.1 (privat studieverktyg)"}
 
 OFFICE_EXTS = {".docx", ".doc", ".odt", ".rtf", ".pptx", ".ppt", ".odp",
                ".xlsx", ".xls", ".ods", ".csv", ".txt"}

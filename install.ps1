@@ -1,11 +1,11 @@
-# IT-testare - Windows-installation (PowerShell).
+# TestARN - Windows-installation (PowerShell).
 #   irm https://raw.githubusercontent.com/simonteklee/it-testare/main/install.ps1 | iex
 $ErrorActionPreference = "Stop"
 
 $dir = if ($env:IT_TESTARE_DIR) { $env:IT_TESTARE_DIR } else { "$HOME\it-testare" }
 $pkgUrl = "https://codeload.github.com/simonteklee/it-testare/zip/refs/heads/main"
 
-Write-Host "== IT-testare installeras till $dir ==" -ForegroundColor Cyan
+Write-Host "== TestARN installeras till $dir ==" -ForegroundColor Cyan
 
 # 1) uv (fixar Python automatiskt)
 if (-not (Get-Command uv -ErrorAction SilentlyContinue) -and -not (Test-Path "$HOME\.local\bin\uv.exe")) {
@@ -51,7 +51,7 @@ GEMINI_MODEL=gemini-3.6-flash
 EMBED_MODEL=sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
 "@ | Set-Content -Encoding UTF8 ".env"
 
-Write-Host "`nKlart! Startar IT-testare i bakgrunden..." -ForegroundColor Green
+Write-Host "`nKlart! Startar TestARN i bakgrunden..." -ForegroundColor Green
 Start-Process -WindowStyle Hidden -FilePath "$dir\.venv\Scripts\uvicorn.exe" `
     -ArgumentList "app.main:app --host 127.0.0.1 --port 8765" -WorkingDirectory $dir
 Start-Sleep -Seconds 3
@@ -64,19 +64,19 @@ try {
                  (Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs'))
     foreach ($t in $targets) {
         if (-not (Test-Path $t)) { continue }
-        $lnk = Join-Path $t 'IT-testare.lnk'
+        $lnk = Join-Path $t 'TestARN.lnk'
         $sc = $ws.CreateShortcut($lnk)
         $sc.TargetPath = "$dir\start.vbs"
         $sc.WorkingDirectory = $dir
         $sc.IconLocation = "$dir\web\icon.ico"
-        $sc.Description = 'IT-testare - lokal AI for IT-test'
+        $sc.Description = 'TestARN - lokal AI for IT-test'
         $sc.Save()
     }
-    Write-Host "Genvagar skapade: skrivbord + Startmeny ('IT-testare')." -ForegroundColor Green
+    Write-Host "Genvagar skapade: skrivbord + Startmeny ('TestARN')." -ForegroundColor Green
 } catch {
     Write-Host "Kunde inte skapa genvag automatiskt: $_" -ForegroundColor Yellow
     Write-Host "Starta istallet: dubbelklicka start.cmd i mappen it-testare."
 }
 
 Write-Host "`nKLART! Du kan stanga det har PowerShell-fonstret." -ForegroundColor Green
-Write-Host "Nasta gang: dubbelklicka 'IT-testare' pa skrivbordet eller i Startmenyn."
+Write-Host "Nasta gang: dubbelklicka 'TestARN' pa skrivbordet eller i Startmenyn."
