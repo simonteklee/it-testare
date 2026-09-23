@@ -17,7 +17,7 @@ from . import share
 DATA = Path(__file__).resolve().parent.parent / "data"
 QA_FILE = DATA / "qa.jsonl"
 COMMUNITY_FILE = DATA / "community_qa.jsonl"
-QA_NAME = "it-testare-qa.json"
+QA_NAME = "testarn-qa.json"
 
 # Alla app-installationer pekar som standard på samma gemensamma rum.
 DEFAULT_GIST = "ba7f30550e6cf986010ecb5759ef4aa7"
@@ -97,15 +97,19 @@ def count() -> int:
 
 def pull_push(gist_id: str) -> dict:
     remote: list[dict] = []
+    stale: list[str] = []
     try:
         g = share.get_gist(gist_id)
         for fn, f in g.get("files", {}).items():
-            if fn.endswith(".json"):
-                try:
-                    obj = json.loads(f["content"])
-                    remote = obj.get("qa", []) if isinstance(obj, dict) else obj
-                except Exception:
-                    pass
+            if not fn.endswith(".json"):
+                continue
+            try:
+                obj = json.loads(f.get("content") or "{}")
+                remote = merge(remote, obj.get("qa", []) if isinstance(obj, dict) else obj)
+            except Exception:
+                pass
+            if fn != QA_NAME:
+                stale.append(fn)  # gammalt filnamn -> städas bort
     except Exception:
         remote = []
     merged = merge(remote, _read(QA_FILE))
@@ -113,9 +117,10 @@ def pull_push(gist_id: str) -> dict:
         "".join(json.dumps(r, ensure_ascii=False) + "\n" for r in merged), encoding="utf-8")
     blocked = False
     try:
-        share.put_file(gist_id, QA_NAME,
-                       json.dumps({"qa": merged}, ensure_ascii=False),
-                       "TestARN - delad Q&A")
+        files: dict = {QA_NAME: {"content": json.dumps({"qa": merged}, ensure_ascii=False)}}
+        for fn in stale:
+            files[fn] = None  # ta bort gamla/duplicerade json-filer
+        share.put_files(gist_id, files, "TestARN - delad Q&A")
     except Exception:
         blocked = True
     return {"remote": len(remote), "total": len(merged), "pushed": not blocked}

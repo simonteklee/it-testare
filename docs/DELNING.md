@@ -28,7 +28,7 @@ Vill ni ha ett eget rum istället för standardrummet:
 2. Klistra in gist-id/länk under **"delad bas"** i panelen → **🔗 Spara**.
 3. **🔄 Synka.**
 
-Alla i gruppen anger samma id. (Standardrummet är en gist med filen `it-testare-qa.json`.)
+Alla i gruppen anger samma id. (Standardrummet är en gist med filen `testarn-qa.json`.)
 
 ## Dela appen med fler
 

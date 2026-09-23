@@ -133,7 +133,7 @@ def publish_gist(pack: dict, gist_id: str | None = None) -> dict:
     payload = {
         "description": "TestARN – delat kunskapspaket",
         "public": False,
-        "files": {"it-testare-paket.json": {"content": json.dumps(pack, ensure_ascii=False, indent=2)}},
+        "files": {"testarn-paket.json": {"content": json.dumps(pack, ensure_ascii=False, indent=2)}},
     }
     with httpx.Client(timeout=30.0) as c:
         if gist_id:
@@ -153,7 +153,10 @@ def fetch_gist(gist_id: str) -> dict:
         if r.status_code != 200:
             raise RuntimeError(f"gist {r.status_code}")
         d = r.json()
-    for fn, f in d.get("files", {}).items():
+    files = d.get("files", {})
+    if "testarn-paket.json" in files:
+        return json.loads(files["testarn-paket.json"]["content"])
+    for fn, f in files.items():
         if fn.endswith(".json"):
             return json.loads(f["content"])
     raise RuntimeError("ingen json-fil i gisten")
@@ -176,6 +179,17 @@ def put_file(gist_id: str, filename: str, content: str, description: str = "Test
         r = c.patch(f"https://api.github.com/gists/{gist_id}", headers=_gist_headers(),
                     json={"description": description,
                           "files": {filename: {"content": content}}})
+        if r.status_code not in (200, 201):
+            raise RuntimeError(f"gist {r.status_code}: {r.text[:200]}")
+        return r.json()
+
+
+def put_files(gist_id: str, files: dict, description: str = "TestARN") -> dict:
+    """Skriv/uppdatera/ta bort flera filer i en gist. Värde None = ta bort filen."""
+    import httpx
+    with httpx.Client(timeout=60.0) as c:
+        r = c.patch(f"https://api.github.com/gists/{gist_id}", headers=_gist_headers(),
+                    json={"description": description, "files": files})
         if r.status_code not in (200, 201):
             raise RuntimeError(f"gist {r.status_code}: {r.text[:200]}")
         return r.json()
