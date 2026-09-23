@@ -19,21 +19,23 @@ svar och kunskap.
 - 📎 **Filuppladdning** – PDF, Word, PowerPoint, Excel, HTML, txt, md, csv, json m.fl.
 - 🌐 **Webbsök** mot en vitlista av testkällor (gratis).
 - ✅ **Kvalitetssäkring** – 👍/👎, "verifiera" (betrodd kunskapsbank) och valfritt granskningsläge.
-- 🌍 **Gemensam bas** – dela frågor & svar med gruppen via en delad (hemlig) GitHub-gist. En knapp.
+- 🌍 **Gemensam bas** – dela frågor & svar med klassen via en delad (hemlig) GitHub-gist. En knapp.
+- 📁 **Klassens frågor i trådar** – frågor med följdfrågor samlas i en "mapp"; klicka för att fälla ut.
+- 💬 **Klasschatt (24 h)** – alla i klassen kan se och skriva; text + bilder/filer som försvinner efter 24 h.
 - 🖥️ **App-känsla** – installerbar som app (PWA) / eget fönster, ikon på skrivbord & i Startmenyn.
 
 ## Snabbstart
 
-**Enklast:** öppna **https://simonteklee.github.io/it-testare/** och välj ditt system (knappar + kopiera).
+**Enklast:** öppna **https://simonteklee.github.io/testarn/** och välj ditt system (knappar + kopiera).
 
 ### Linux / macOS
 ```bash
-curl -fsSL https://raw.githubusercontent.com/simonteklee/it-testare/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/simonteklee/testarn/main/install.sh | bash
 ```
 
 ### Windows (PowerShell)
 ```powershell
-irm https://raw.githubusercontent.com/simonteklee/it-testare/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/simonteklee/testarn/main/install.ps1 | iex
 ```
 
 Skriptet installerar allt (via [`uv`](https://docs.astral.sh/uv/) – inget Python-krav), frågar efter
@@ -80,8 +82,8 @@ Se [`docs/ARKITEKTUR.md`](docs/ARKITEKTUR.md) för detaljer.
 ## Utveckling
 
 ```bash
-git clone https://github.com/simonteklee/it-testare.git
-cd it-testare
+git clone https://github.com/simonteklee/testarn.git
+cd testarn
 uv venv .venv && uv pip install -r requirements.txt
 cp .env.example .env          # fyll i dina nycklar
 .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8765

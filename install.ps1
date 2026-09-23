@@ -1,9 +1,9 @@
 # TestARN - Windows-installation (PowerShell).
-#   irm https://raw.githubusercontent.com/simonteklee/it-testare/main/install.ps1 | iex
+#   irm https://raw.githubusercontent.com/simonteklee/testarn/main/install.ps1 | iex
 $ErrorActionPreference = "Stop"
 
-$dir = if ($env:IT_TESTARE_DIR) { $env:IT_TESTARE_DIR } else { "$HOME\it-testare" }
-$pkgUrl = "https://codeload.github.com/simonteklee/it-testare/zip/refs/heads/main"
+$dir = if ($env:TESTARN_DIR) { $env:TESTARN_DIR } else { "$HOME\testarn" }
+$pkgUrl = "https://codeload.github.com/simonteklee/testarn/zip/refs/heads/main"
 
 Write-Host "== TestARN installeras till $dir ==" -ForegroundColor Cyan
 
@@ -75,7 +75,7 @@ try {
     Write-Host "Genvagar skapade: skrivbord + Startmeny ('TestARN')." -ForegroundColor Green
 } catch {
     Write-Host "Kunde inte skapa genvag automatiskt: $_" -ForegroundColor Yellow
-    Write-Host "Starta istallet: dubbelklicka start.cmd i mappen it-testare."
+    Write-Host "Starta istallet: dubbelklicka start.cmd i mappen testarn."
 }
 
 Write-Host "`nKLART! Du kan stanga det har PowerShell-fonstret." -ForegroundColor Green

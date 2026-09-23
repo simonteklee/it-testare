@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>TestARN — lokal AI för IT-test</title>
 <style>
-  :root { --bg:#0f1115; --panel:#171a21; --line:#2a2f3a; --text:#e7e9ee; --muted:#9aa3b2; --accent:#4f8cff; }
+  :root { --bg:#0e0b14; --panel:#17122a; --line:#3a2d59; --text:#f4efff; --muted:#c3b8dd; --accent:#b46cff; --accent2:#7c3aed; }
   * { box-sizing:border-box; }
   body { margin:0; font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; background:var(--bg); color:var(--text); }
   .wrap { max-width:760px; margin:0 auto; padding:48px 20px 64px; }
@@ -13,11 +13,11 @@
   .sub { color:var(--muted); margin-bottom:28px; }
   .card { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:18px; margin-bottom:16px; }
   .card h2 { font-size:16px; margin:0 0 10px; }
-  code { display:block; background:#0b0d11; border:1px solid var(--line); border-radius:9px; padding:11px 12px;
+  code { display:block; background:#150f26; border:1px solid var(--line); border-radius:9px; padding:11px 12px;
          font-family:ui-monospace,Menlo,Consolas,monospace; font-size:13px; overflow-x:auto; white-space:pre; }
   .row { display:flex; gap:8px; align-items:center; margin-top:8px; }
-  button { background:var(--accent); color:#fff; border:0; border-radius:9px; padding:8px 14px; font:inherit; cursor:pointer; }
-  button.ghost { background:transparent; border:1px solid var(--line); color:var(--text); }
+  button { background:linear-gradient(135deg,var(--accent2),var(--accent)); color:#fff; border:0; border-radius:9px; padding:9px 15px; font:inherit; font-weight:600; cursor:pointer; }
+  button.ghost { background:transparent; border:1px solid var(--line); color:var(--text); font-weight:500; }
   .muted { color:var(--muted); font-size:13px; }
   a { color:var(--accent); }
   ul { color:var(--muted); font-size:14px; line-height:1.6; }
@@ -27,12 +27,13 @@
 <div class="wrap">
   <h1>TestARN 🧩</h1>
   <div class="sub">Lokal AI-assistent som bara kan IT-test &amp; kvalitetssäkring — gratis, privat,
-    svar på svenska, alltid med källor. Kopplas automatiskt ihop med gruppens frågor &amp; svar.</div>
+    svar på svenska, alltid med källor. Kopplas automatiskt ihop med <b>klassens frågor &amp; svar</b>
+    och en <b>klasschatt</b> (allt försvinner efter 24 h).</div>
 
   <div class="card">
     <h2>🪟 Windows</h2>
     <div class="muted">Öppna <b>PowerShell</b> (Windows-tangenten → skriv "PowerShell" → Enter) och kör:</div>
-    <code id="cmd-win">irm https://raw.githubusercontent.com/simonteklee/it-testare/main/install.ps1 | iex</code>
+    <code id="cmd-win">irm https://raw.githubusercontent.com/simonteklee/testarn/main/install.ps1 | iex</code>
     <div class="row"><button onclick="copy('cmd-win')">Kopiera</button>
       <span class="muted">Frågar efter två gratisnycklar — skriptet öppnar sidorna.</span></div>
   </div>
@@ -40,7 +41,7 @@
   <div class="card">
     <h2>🐧 Linux / macOS</h2>
     <div class="muted">Öppna en terminal och kör:</div>
-    <code id="cmd-nix">curl -fsSL https://raw.githubusercontent.com/simonteklee/it-testare/main/install.sh | bash</code>
+    <code id="cmd-nix">curl -fsSL https://raw.githubusercontent.com/simonteklee/testarn/main/install.sh | bash</code>
     <div class="row"><button onclick="copy('cmd-nix')">Kopiera</button>
       <span class="muted">Frågar efter två gratisnycklar — skriptet öppnar sidorna.</span></div>
   </div>
@@ -54,12 +55,19 @@
     <div class="muted">Logga in → "Create API key" → kopiera → klistra in i terminalen.</div>
   </div>
 
-  <div class="card">
-    <h2>🔄 Uppdatera</h2>
-    <div class="muted">I appen: <b>💡 tips &amp; dela → 🔄 Uppdatera appen</b>. (Eller kör kommandot ovan igen.)</div>
+  <div class="card" style="border-color:var(--accent2)">
+    <h2>🔄 Har du redan appen? Uppdatera hit</h2>
+    <div class="muted">Två sätt — båda ger dig senaste versionen (klasschatt, klassfrågor i trådar, nytt utseende):</div>
+    <ul>
+      <li><b>Enklast:</b> öppna appen → <b>💡 tips &amp; dela</b> → <b>🔄 Uppdatera appen</b>.</li>
+      <li><b>Eller:</b> kör <b>samma rad som när du installerade</b> igen — den uppdaterar på plats och behåller dina nycklar:</li>
+    </ul>
+    <code id="cmd-upd">curl -fsSL https://raw.githubusercontent.com/simonteklee/testarn/main/install.sh | bash</code>
+    <div class="row"><button onclick="copy('cmd-upd')">Kopiera</button>
+      <span class="muted">Windows: kör PowerShell-raden ovan igen.</span></div>
   </div>
 
-  <p class="muted">Öppen källkod (MIT): <a href="https://github.com/simonteklee/it-testare">github.com/simonteklee/it-testare</a></p>
+  <p class="muted">Öppen källkod (MIT): <a href="https://github.com/simonteklee/testarn">github.com/simonteklee/testarn</a></p>
 </div>
 <script>
 function copy(id){

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # TestARN - engangsinstallation.
-#   curl -fsSL https://raw.githubusercontent.com/simonteklee/it-testare/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/simonteklee/testarn/main/install.sh | bash
 set -euo pipefail
 
-PKG_URL="${IT_TESTARE_PKG_URL:-https://codeload.github.com/simonteklee/it-testare/tar.gz/refs/heads/main}"
-DIR="${IT_TESTARE_DIR:-$HOME/it-testare}"
+PKG_URL="${TESTARN_PKG_URL:-https://codeload.github.com/simonteklee/testarn/tar.gz/refs/heads/main}"
+DIR="${TESTARN_DIR:-$HOME/testarn}"
 
 echo "== TestARN installeras till $DIR =="
 
@@ -15,9 +15,9 @@ fi
 
 mkdir -p "$DIR"
 echo "• hamtar programmet..."
-curl -fsSL "$PKG_URL" -o /tmp/it-testare-pkg.tar.gz
-tar -xzf /tmp/it-testare-pkg.tar.gz -C "$DIR" --strip-components=1
-rm -f /tmp/it-testare-pkg.tar.gz
+curl -fsSL "$PKG_URL" -o /tmp/testarn-pkg.tar.gz
+tar -xzf /tmp/testarn-pkg.tar.gz -C "$DIR" --strip-components=1
+rm -f /tmp/testarn-pkg.tar.gz
 cd "$DIR"
 
 echo "• skapar python-miljo och installerar (tar ~1 min)..."

@@ -5,7 +5,7 @@ egen dator, i webbläsaren, och kan svara utifrån en kunskapsbas + webbsök, al
 
 ## ⚡ Snabbaste vägen — klistra in EN rad i terminalen
 ```bash
-curl -fsSL https://raw.githubusercontent.com/simonteklee/it-testare/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/simonteklee/testarn/main/install.sh | bash
 ```
 Skriptet sköter allt: hämtar programmet, installerar, **frågar efter dina två gratisnycklar** och startar.
 Klart på ~2 minuter.
@@ -13,7 +13,7 @@ Klart på ~2 minuter.
 > Behöver du nycklar? **Groq:** https://console.groq.com/keys · **Gemini:** https://aistudio.google.com/apikey
 > (Skriptet visar även länkarna.)
 
-Nästa gång du vill starta: kör `~/it-testare/start.sh`.
+Nästa gång du vill starta: kör `~/testarn/start.sh`.
 
 ---
 
@@ -25,7 +25,7 @@ Nästa gång du vill starta: kör `~/it-testare/start.sh`.
 - Internet (för språkmodellen).
 
 ## Steg 1 — Få filerna
-Packa upp `it-testare.zip` till en mapp, t.ex. `~/ws/testbot`
+Packa upp `testarn.zip` till en mapp, t.ex. `~/ws/testbot`
 (eller `git clone` om du fått ett repo).
 
 ## Steg 2 — Installera
@@ -52,7 +52,7 @@ GEMINI_API_KEY=...
 ```
 Öppnas inte webbläsaren automatiskt → gå till **http://127.0.0.1:8765**
 
-> Tips (Linux): lägg `start.sh` som en genväg på skrivbordet/menyn (som `it-testare.desktop`).
+> Tips (Linux): lägg `start.sh` som en genväg på skrivbordet/menyn (som `testarn.desktop`).
 
 ## Steg 5 — Koppla ihop med en vän (valfritt)
 Ni kan dela kunskap med varandra via en **gemensam gist**:
@@ -73,14 +73,14 @@ Alternativt: **⬇ Ladda ner mitt paket** → skicka filen → vännen importera
 ## Windows
 Öppna **PowerShell** (Windows-tangenten → skriv "PowerShell" → Enter) och kör:
 ```powershell
-irm https://raw.githubusercontent.com/simonteklee/it-testare/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/simonteklee/testarn/main/install.ps1 | iex
 ```
 Blockerar Windows skriptet? Kör först:
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 ```
 Skriptet installerar allt (via `uv`, inget Python-krav), frågar efter nycklarna och startar.
-Starta om senare: dubbelklicka **`start.cmd`** i mappen `it-testare`.
+Starta om senare: dubbelklicka **`start.cmd`** i mappen `testarn`.
 
 > Obs: filuppladdning av **PDF/Word/PowerPoint/Excel** fungerar även på Windows (inbyggd läsning via Python).
 > Vissa format (odt/rtf) kan kräva LibreOffice – annars konvertera till PDF/docx.

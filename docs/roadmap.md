@@ -34,7 +34,7 @@ Byggs fas för fas. Efter varje fas kör vi och kollar att det funkar innan näs
 - [ ] Valfritt granskningsläge.
 
 ## Fas 5 — Paketera & dela ✅
-- [x] App-genväg + **systemd-tjänst** (`it-testare.service`) → startar automatiskt, körs alltid.
+- [x] App-genväg + **systemd-tjänst** (`testarn.service`) → startar automatiskt, körs alltid.
 - [x] **Delbart kunskapspaket**: ladda ner (JSON) eller publicera/hämta som **GitHub Gist** (hemlig).
 - [x] **Community / lär av andra**: "💡 Vad andra frågat" (vanligaste frågorna) + importera en väns paket
   → deras verifierade svar blir källor märkta *community*.

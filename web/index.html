@@ -77,8 +77,24 @@
   .tipq { font-size: 12px; color: var(--muted); }
   .actinput { flex: 1; background: var(--panel2); color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 6px 9px; font: inherit; }
   .layout { flex: 1; display: flex; overflow: hidden; min-height: 0; }
-  aside#side { width: 312px; border-left: 1px solid var(--line); background: var(--panel); overflow-y: auto; padding: 14px; }
+  aside#side { width: 340px; border-left: 1px solid var(--line); background: var(--panel); overflow-y: auto; padding: 14px; display: flex; flex-direction: column; }
   aside#side h3 { font-size: 13px; margin: 2px 0 10px; color: var(--text); }
+  .tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+  .tab { flex: 1; background: var(--panel2); color: var(--muted); border: 1px solid var(--line); border-radius: 10px; padding: 10px 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .tab.active { color: #fff; background: linear-gradient(135deg, var(--accent2), var(--accent)); border-color: transparent; }
+  .pane { display: flex; flex-direction: column; min-height: 0; flex: 1; }
+  .chatlist { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; flex: 1; min-height: 120px; padding-right: 2px; }
+  .chatmsg { border: 1px solid var(--line); border-radius: 11px; padding: 8px 10px; background: var(--panel2); }
+  .chatmsg.mine { border-color: var(--accent2); background: linear-gradient(180deg, rgba(124,58,237,.18), rgba(124,58,237,.05)); }
+  .chathead { display: flex; justify-content: space-between; gap: 8px; font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+  .chathead b { color: var(--text); font-size: 12px; }
+  .chattext { font-size: 13px; line-height: 1.4; white-space: pre-wrap; word-wrap: break-word; }
+  .chatimg { max-width: 100%; border-radius: 9px; margin-top: 5px; display: block; }
+  .chatfile { font-size: 13px; margin-top: 5px; }
+  .chatfile a { color: var(--accent); }
+  .chatrow { display: flex; gap: 6px; align-items: center; margin-top: 10px; }
+  .chatrow .actinput { flex: 1; min-width: 0; padding: 10px 11px; }
+  #chatAttach { padding: 10px 12px; }
   .sideitem { font-size: 14px; padding: 11px 12px; border: 1px solid var(--line); border-radius: 10px; margin-bottom: 6px; cursor: pointer; }
   .sideitem:hover { border-color: var(--accent); }
   .qgroup { margin-bottom: 10px; }
@@ -141,8 +157,24 @@
   </div>
 </main>
 <aside id="side">
-  <h3>💬 Klassens frågor</h3>
-  <div id="sideList" class="tipq">laddar…</div>
+  <div class="tabs">
+    <button class="tab active" data-tab="chat">💬 Chatt</button>
+    <button class="tab" data-tab="fragor">📁 Klassens frågor</button>
+  </div>
+  <div id="paneChat" class="pane">
+    <div id="chatinfo" class="tipq" style="margin-bottom:8px">laddar…</div>
+    <div id="chatList" class="chatlist"><div class="tipq">laddar…</div></div>
+    <div class="chatrow">
+      <button id="chatAttach" class="ghost" type="button" title="Skicka bild eller fil">📎</button>
+      <input id="chatFile" type="file" hidden />
+      <input id="chatText" class="actinput" placeholder="Skriv till klassen…" />
+      <button id="chatSendBtn" class="act" type="button">Skicka</button>
+    </div>
+    <div id="chatStatus" class="attachstatus"></div>
+  </div>
+  <div id="paneFragor" class="pane" hidden>
+    <div id="sideList" class="tipq">laddar…</div>
+  </div>
 </aside>
 </div>
 
@@ -443,12 +475,77 @@ async function syncCommunity(){
   refreshGroup();
 }
 function maybeSync(){ const now = Date.now(); if (now - lastSync > 15000){ lastSync = now; syncCommunity(); } }
-document.getElementById('sideBtn').addEventListener('click', () => document.getElementById('side').classList.toggle('open'));
+document.getElementById('sideBtn').addEventListener('click', () => { document.getElementById('side').classList.toggle('open'); loadChat(); });
 (async () => {
   const c = await fetch('/api/community').then(r=>r.json()).catch(()=>({}));
   if (c.on !== false) await syncCommunity(); else refreshGroup();
 })();
 setInterval(() => { if (document.getElementById('sideList')) refreshGroup(); }, 60000);
+
+// ---- Klasschatt (24 h) ----
+function chatTime(ts){ const d = new Date((ts || 0) * 1000); return d.toLocaleTimeString('sv-SE', {hour:'2-digit', minute:'2-digit'}); }
+function renderChat(msgs, me){
+  const box = document.getElementById('chatList'); if (!box) return;
+  if (!msgs || !msgs.length){ box.innerHTML = '<div class="tipq">Inga meddelanden än. Säg hej! 👋</div>'; return; }
+  const meL = (me || '').toLowerCase();
+  box.innerHTML = msgs.map(m => {
+    const mine = m.from && m.from.toLowerCase() === meL;
+    let inner = '';
+    if (m.url){
+      const safe = /^https:\/\/litter\.catbox\.moe\//.test(m.url);
+      if (m.kind === 'image' && safe) inner += '<a href="' + esc(m.url) + '" target="_blank" rel="noopener"><img class="chatimg" src="' + esc(m.url) + '" loading="lazy"></a>';
+      else if (safe) inner += '<div class="chatfile">📎 <a href="' + esc(m.url) + '" target="_blank" rel="noopener">öppna fil</a></div>';
+      else inner += '<div class="chatfile">📎 ' + esc(m.url) + '</div>';
+    }
+    if (m.text) inner += '<div class="chattext">' + esc(m.text) + '</div>';
+    return '<div class="chatmsg' + (mine ? ' mine' : '') + '"><div class="chathead"><b>' + esc(m.from || '?') + '</b><span>' + chatTime(m.ts) + '</span></div>' + inner + '</div>';
+  }).join('');
+  box.scrollTop = box.scrollHeight;
+}
+async function loadChat(){
+  try {
+    const d = await fetch('/api/classchat').then(r=>r.json());
+    const info = document.getElementById('chatinfo');
+    if (info) info.textContent = d.on ? '💬 Klasschatt – allt försvinner efter 24 h' : '💬 Chatten är avstängd';
+    renderChat(d.messages || [], d.name || '');
+  } catch(e){}
+}
+async function sendChat(){
+  const t = document.getElementById('chatText'); if (!t) return;
+  const txt = t.value.trim(); if (!txt) return;
+  const st = document.getElementById('chatStatus'); st.textContent = 'skickar…';
+  try {
+    const r = await fetch('/api/classchat', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({text: txt})}).then(r=>r.json());
+    if (r.error){ st.textContent = 'fel: ' + r.error; return; }
+    t.value = ''; st.textContent = ''; renderChat(r.messages || [], r.name || '');
+  } catch(e){ st.textContent = 'fel: ' + e; }
+}
+async function attachChat(f){
+  const st = document.getElementById('chatStatus'); st.textContent = 'laddar upp ' + f.name + '…';
+  const fd = new FormData(); fd.append('file', f);
+  try {
+    const u = await fetch('/api/classchat/upload', {method:'POST', body: fd}).then(r=>r.json());
+    if (u.error){ st.textContent = 'fel: ' + u.error; return; }
+    const txt = (document.getElementById('chatText').value || '').trim();
+    const r = await fetch('/api/classchat', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({text: txt, url: u.url, kind: u.kind})}).then(r=>r.json());
+    if (r.error){ st.textContent = 'fel: ' + r.error; return; }
+    document.getElementById('chatText').value = ''; st.textContent = 'uppladdat ✓';
+    renderChat(r.messages || [], r.name || '');
+    setTimeout(() => { if (st.textContent === 'uppladdat ✓') st.textContent = ''; }, 4000);
+  } catch(e){ st.textContent = 'fel: ' + e; }
+}
+document.querySelectorAll('#side .tab').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('#side .tab').forEach(x => x.classList.toggle('active', x === b));
+  document.getElementById('paneChat').hidden = b.dataset.tab !== 'chat';
+  document.getElementById('paneFragor').hidden = b.dataset.tab !== 'fragor';
+  if (b.dataset.tab === 'chat') loadChat();
+}));
+document.getElementById('chatSendBtn').addEventListener('click', sendChat);
+document.getElementById('chatText').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); sendChat(); } });
+document.getElementById('chatAttach').addEventListener('click', () => document.getElementById('chatFile').click());
+document.getElementById('chatFile').addEventListener('change', e => { const f = e.target.files[0]; if (f) attachChat(f); e.target.value = ''; });
+loadChat();
+setInterval(loadChat, 8000);
 
 async function showTips(){
   let top = [];

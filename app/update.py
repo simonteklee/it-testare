@@ -22,7 +22,7 @@ import httpx
 from . import __version__
 
 ROOT = Path(__file__).resolve().parent.parent
-REPO = "simonteklee/it-testare"
+REPO = "simonteklee/testarn"
 BRANCH = "main"
 RAW = f"https://raw.githubusercontent.com/{REPO}/{BRANCH}"
 TARBALL = f"https://codeload.github.com/{REPO}/tar.gz/refs/heads/{BRANCH}"
@@ -100,6 +100,15 @@ def apply() -> dict:
     return _apply_tarball()
 
 
+def _restart_unit() -> str:
+    """Vilken systemd-enhet som finns (nytt namn, annars det gamla)."""
+    base = Path.home() / ".config" / "systemd" / "user"
+    for name in ("testarn.service", "it-testare.service"):
+        if (base / name).exists():
+            return name
+    return "testarn.service"
+
+
 def _restart_later() -> None:
     time.sleep(1.5)
     try:
@@ -108,7 +117,7 @@ def _restart_later() -> None:
                   f"Stop-Process -Force; Start-Process '{ROOT}\\start.vbs'")
             subprocess.Popen(["powershell", "-NoProfile", "-Command", ps])
         else:
-            subprocess.Popen(["systemctl", "--user", "restart", "it-testare.service"])
+            subprocess.Popen(["systemctl", "--user", "restart", _restart_unit()])
     except Exception:
         pass
 
@@ -120,7 +129,7 @@ def update_and_restart() -> dict:
     except Exception:
         res["new_version"] = ""
     # starta om strax efter att svaret skickats
-    unit = Path.home() / ".config" / "systemd" / "user" / "it-testare.service"
+    unit = Path.home() / ".config" / "systemd" / "user" / _restart_unit()
     can_auto = os.name == "nt" or (unit.exists() and shutil.which("systemctl") is not None)
     if res.get("ok") and can_auto:
         threading.Thread(target=_restart_later, daemon=True).start()

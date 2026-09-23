@@ -10,6 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from . import community, extract, feedback, kb, search, share, update
+from . import chat as chat_mod
 from .llm import ProviderError, available_providers, generate
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -57,6 +58,16 @@ class VerifyRequest(BaseModel):
 class ConfigRequest(BaseModel):
     review_mode: bool | None = None
     shared_gist: str | None = None
+    chat_on: bool | None = None
+    chat_name: str | None = None
+    chat_topic: str | None = None
+
+
+class ChatSendRequest(BaseModel):
+    text: str = ""
+    name: str = ""
+    url: str = ""
+    kind: str = ""
 
 
 class ImportRequest(BaseModel):
@@ -185,8 +196,40 @@ async def set_config(req: ConfigRequest) -> dict:
         if gid and "/" in gid:
             gid = gid.rstrip("/").split("/")[-1]
         cfg["shared_gist"] = gid
+    if req.chat_on is not None:
+        cfg["chat_on"] = req.chat_on
+    if req.chat_name is not None:
+        cfg["chat_name"] = req.chat_name.strip()[:40]
+    if req.chat_topic is not None:
+        cfg["chat_topic"] = req.chat_topic.strip()[:64]
     feedback.save_config(cfg)
     return cfg
+
+
+@app.get("/api/classchat")
+async def classchat_list() -> dict:
+    return {"on": chat_mod.enabled(), "topic": chat_mod.topic(), "name": chat_mod.my_name(),
+            "messages": chat_mod.fetch()}
+
+
+@app.post("/api/classchat")
+async def classchat_send(req: ChatSendRequest) -> JSONResponse:
+    try:
+        res = chat_mod.send(req.text, req.name, req.url, req.kind)
+        return JSONResponse({**res, "name": chat_mod.my_name(), "messages": chat_mod.fetch()})
+    except Exception as e:  # noqa: BLE001
+        return JSONResponse({"error": str(e)}, status_code=400)
+
+
+@app.post("/api/classchat/upload")
+async def classchat_upload(file: UploadFile = File(...)) -> JSONResponse:
+    data = await file.read()
+    if len(data) > 15 * 1024 * 1024:
+        return JSONResponse({"error": "Filen är för stor (max 15 MB)."}, status_code=400)
+    try:
+        return JSONResponse(chat_mod.upload(file.filename or "fil", data, file.content_type or ""))
+    except Exception as e:  # noqa: BLE001
+        return JSONResponse({"error": str(e)}, status_code=400)
 
 
 @app.post("/api/sync")
