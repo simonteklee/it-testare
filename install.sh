@@ -1,10 +1,28 @@
 #!/usr/bin/env bash
-# TestARN - engangsinstallation.
+# TestARN - engangsinstallation / uppdatering (alltid senaste versionen).
 #   curl -fsSL https://raw.githubusercontent.com/simonteklee/testarn/main/install.sh | bash
 set -euo pipefail
 
-PKG_URL="${TESTARN_PKG_URL:-https://codeload.github.com/simonteklee/testarn/tar.gz/refs/heads/main}"
+REPO="simonteklee/testarn"
+# Hämtas alltid färskt via GitHub-API:t (ingen CDN-cache). Fallback: codeload + cache-buster.
+PKG_API="${TESTARN_PKG_API:-https://api.github.com/repos/$REPO/tarball/main}"
+PKG_URL="${TESTARN_PKG_URL:-https://codeload.github.com/$REPO/tar.gz/refs/heads/main}"
+VER_URL="${TESTARN_VER_URL:-https://api.github.com/repos/$REPO/contents/version.txt?ref=main}"
 DIR="${TESTARN_DIR:-$HOME/testarn}"
+
+latest_version() {
+  curl -fsSL -H 'Cache-Control: no-cache' -H 'Accept: application/vnd.github.raw' "$VER_URL" 2>/dev/null \
+    | tr -d '[:space:]' || true
+}
+
+download_pkg() {
+  rm -f /tmp/testarn-pkg.tar.gz
+  if curl -fsSL -L -H 'Cache-Control: no-cache' -H 'User-Agent: testarn-installer' "$PKG_API" \
+       -o /tmp/testarn-pkg.tar.gz; then
+    return 0
+  fi
+  curl -fsSL -L "$PKG_URL?t=$(date +%s)" -o /tmp/testarn-pkg.tar.gz
+}
 
 echo "== TestARN installeras till $DIR =="
 
@@ -14,11 +32,21 @@ if ! command -v python3 >/dev/null 2>&1 && ! command -v uv >/dev/null 2>&1 && [ 
 fi
 
 mkdir -p "$DIR"
-echo "• hamtar programmet..."
-curl -fsSL "$PKG_URL" -o /tmp/testarn-pkg.tar.gz
+LATEST="$(latest_version)"
+echo "• hamtar programmet (senaste version${LATEST:+ $LATEST})..."
+download_pkg
 tar -xzf /tmp/testarn-pkg.tar.gz -C "$DIR" --strip-components=1
 rm -f /tmp/testarn-pkg.tar.gz
 cd "$DIR"
+
+INSTALLED="$(cat version.txt 2>/dev/null | tr -d '[:space:]' || true)"
+if [ -n "$LATEST" ] && [ "$INSTALLED" != "$LATEST" ]; then
+  echo "• fick version ${INSTALLED:-?}, senaste ar $LATEST - hamtar en gang till..."
+  download_pkg
+  tar -xzf /tmp/testarn-pkg.tar.gz -C "$DIR" --strip-components=1
+  rm -f /tmp/testarn-pkg.tar.gz
+  INSTALLED="$(cat version.txt 2>/dev/null | tr -d '[:space:]' || true)"
+fi
 
 echo "• skapar python-miljo och installerar (tar ~1 min)..."
 if ! command -v uv >/dev/null 2>&1 && [ ! -x "$HOME/.local/bin/uv" ]; then
@@ -39,6 +67,8 @@ fi
 # Nycklar
 if [ -n "${GROQ_API_KEY:-}" ] && [ -n "${GEMINI_API_KEY:-}" ]; then
   GROQ="$GROQ_API_KEY"; GEM="$GEMINI_API_KEY"
+elif [ -f .env ] && grep -q GROQ_API_KEY .env; then
+  echo "• behaller dina befintliga nycklar i .env"
 else
   echo
   echo "== Tva gratis nycklar behovs (2 min) =="
@@ -51,18 +81,35 @@ else
   read -rp "  Klistra in GEMINI-nyckeln och tryck Enter: " GEM < /dev/tty
 fi
 
-cat > .env <<EOF
+if [ -n "${GROQ:-}" ] && [ -n "${GEM:-}" ]; then
+  cat > .env <<EOF
 GROQ_API_KEY=$GROQ
 GEMINI_API_KEY=$GEM
 GROQ_MODEL=openai/gpt-oss-120b
 GEMINI_MODEL=gemini-3.6-flash
 EMBED_MODEL=sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
 EOF
-chmod 600 .env
+  chmod 600 .env
+fi
 chmod +x start.sh
 
+# Stoppa/starta om ev. gammal server sa att den NYA koden kor
+if [ -f "$HOME/.config/systemd/user/testarn.service" ]; then
+  systemctl --user restart testarn.service >/dev/null 2>&1 || true
+elif [ -f "$HOME/.config/systemd/user/it-testare.service" ]; then
+  systemctl --user restart it-testare.service >/dev/null 2>&1 || true
+else
+  pkill -f "uvicorn app.main:app" >/dev/null 2>&1 || true
+fi
+# vanta tills servern svarar (sa att start.sh inte startar en dubbel)
+for _ in $(seq 1 24); do
+  curl -s -m 2 "http://127.0.0.1:8765/api/health" >/dev/null 2>&1 && break
+  sleep 0.5
+done
+
 echo
-echo "✓ Klart! Startar TestARN..."
+echo "✓ Klart! TestARN version ${INSTALLED:-?}${LATEST:+ (senaste: $LATEST)}"
+echo "Startar TestARN..."
 ./start.sh
 echo "Oppna webblasaren pa: http://127.0.0.1:8765"
 echo "Nasta gang: kor $DIR/start.sh"

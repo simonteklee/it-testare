@@ -19,6 +19,7 @@
   button { background:linear-gradient(135deg,var(--accent2),var(--accent)); color:#fff; border:0; border-radius:9px; padding:9px 15px; font:inherit; font-weight:600; cursor:pointer; }
   button.ghost { background:transparent; border:1px solid var(--line); color:var(--text); font-weight:500; }
   .muted { color:var(--muted); font-size:13px; }
+  .ver { font-size:14px; color:var(--text); margin:8px 0 4px; }
   a { color:var(--accent); }
   ul { color:var(--muted); font-size:14px; line-height:1.6; }
 </style>
@@ -26,6 +27,7 @@
 <body>
 <div class="wrap">
   <h1>TestARN 🧩</h1>
+  <div class="ver">Senaste version: <b id="ver">…</b> <span class="muted">(installationsraden hämtar alltid denna)</span></div>
   <div class="sub">Lokal AI-assistent som bara kan IT-test &amp; kvalitetssäkring — gratis, privat,
     svar på svenska, alltid med källor. Kopplas automatiskt ihop med <b>klassens frågor &amp; svar</b>
     och en <b>klasschatt</b> (allt försvinner efter 24 h).</div>
@@ -33,7 +35,7 @@
   <div class="card">
     <h2>🪟 Windows</h2>
     <div class="muted">Öppna <b>PowerShell</b> (Windows-tangenten → skriv "PowerShell" → Enter) och kör:</div>
-    <code id="cmd-win">irm https://raw.githubusercontent.com/simonteklee/testarn/main/install.ps1 | iex</code>
+    <code id="cmd-win">irm "https://raw.githubusercontent.com/simonteklee/testarn/main/install.ps1?v=$((Get-Random))" | iex</code>
     <div class="row"><button onclick="copy('cmd-win')">Kopiera</button>
       <span class="muted">Frågar efter två gratisnycklar — skriptet öppnar sidorna.</span></div>
   </div>
@@ -41,7 +43,7 @@
   <div class="card">
     <h2>🐧 Linux / macOS</h2>
     <div class="muted">Öppna en terminal och kör:</div>
-    <code id="cmd-nix">curl -fsSL https://raw.githubusercontent.com/simonteklee/testarn/main/install.sh | bash</code>
+    <code id="cmd-nix">curl -fsSL "https://raw.githubusercontent.com/simonteklee/testarn/main/install.sh?v=$(date +%s)" | bash</code>
     <div class="row"><button onclick="copy('cmd-nix')">Kopiera</button>
       <span class="muted">Frågar efter två gratisnycklar — skriptet öppnar sidorna.</span></div>
   </div>
@@ -62,7 +64,7 @@
       <li><b>Enklast:</b> öppna appen → <b>💡 tips &amp; dela</b> → <b>🔄 Uppdatera appen</b>.</li>
       <li><b>Eller:</b> kör <b>samma rad som när du installerade</b> igen — den uppdaterar på plats och behåller dina nycklar:</li>
     </ul>
-    <code id="cmd-upd">curl -fsSL https://raw.githubusercontent.com/simonteklee/testarn/main/install.sh | bash</code>
+    <code id="cmd-upd">curl -fsSL "https://raw.githubusercontent.com/simonteklee/testarn/main/install.sh?v=$(date +%s)" | bash</code>
     <div class="row"><button onclick="copy('cmd-upd')">Kopiera</button>
       <span class="muted">Windows: kör PowerShell-raden ovan igen.</span></div>
   </div>
@@ -77,6 +79,12 @@ function copy(id){
     setTimeout(()=>b.textContent = old, 1500);
   });
 }
+// Hämta senaste versionen live (sidan kan vara cachad – siffran är det inte)
+fetch('https://api.github.com/repos/simonteklee/testarn/contents/version.txt?ref=main',
+      {headers:{'Accept':'application/vnd.github.raw'}, cache:'no-store'})
+  .then(r => r.ok ? r.text() : '')
+  .then(v => { const el = document.getElementById('ver'); if (el && v) el.textContent = v.trim(); })
+  .catch(()=>{});
 </script>
 </body>
 </html>

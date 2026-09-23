@@ -30,12 +30,12 @@ svar och kunskap.
 
 ### Linux / macOS
 ```bash
-curl -fsSL https://raw.githubusercontent.com/simonteklee/testarn/main/install.sh | bash
+curl -fsSL "https://raw.githubusercontent.com/simonteklee/testarn/main/install.sh?v=$(date +%s)" | bash
 ```
 
 ### Windows (PowerShell)
 ```powershell
-irm https://raw.githubusercontent.com/simonteklee/testarn/main/install.ps1 | iex
+irm "https://raw.githubusercontent.com/simonteklee/testarn/main/install.ps1?v=$((Get-Random))" | iex
 ```
 
 Skriptet installerar allt (via [`uv`](https://docs.astral.sh/uv/) – inget Python-krav), frågar efter
