@@ -77,12 +77,17 @@
   .tipq { font-size: 12px; color: var(--muted); }
   .actinput { flex: 1; background: var(--panel2); color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 6px 9px; font: inherit; }
   .layout { flex: 1; display: flex; overflow: hidden; min-height: 0; }
-  aside#side { width: 340px; border-left: 1px solid var(--line); background: var(--panel); overflow-y: auto; padding: 14px; display: flex; flex-direction: column; }
-  aside#side h3 { font-size: 13px; margin: 2px 0 10px; color: var(--text); }
-  .tabs { display: flex; gap: 6px; margin-bottom: 10px; }
-  .tab { flex: 1; background: var(--panel2); color: var(--muted); border: 1px solid var(--line); border-radius: 10px; padding: 10px 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
-  .tab.active { color: #fff; background: linear-gradient(135deg, var(--accent2), var(--accent)); border-color: transparent; }
-  .pane { display: flex; flex-direction: column; min-height: 0; flex: 1; }
+  aside.side { width: 340px; flex: none; background: var(--panel); display: flex; flex-direction: column; overflow: hidden; }
+  aside.side.left { border-right: 1px solid var(--line); }
+  aside.side.right { border-left: 1px solid var(--line); }
+  aside.side.maximized { width: min(68vw, 720px); }
+  aside.side.hidden { display: none; }
+  .sidehead { display: flex; align-items: center; gap: 8px; padding: 12px 12px 10px; border-bottom: 1px solid var(--line); }
+  .sidehead .t { font-size: 13px; font-weight: 600; flex: 1; }
+  .sidebtns { display: flex; gap: 5px; }
+  .sidebtn { background: transparent; border: 1px solid var(--line); color: var(--muted); border-radius: 8px; padding: 4px 10px; font-size: 14px; font-weight: 700; cursor: pointer; box-shadow: none; line-height: 1.1; }
+  .sidebtn:hover { border-color: var(--accent); color: #fff; }
+  .sidebody { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 12px; gap: 8px; overflow-y: auto; }
   .chatlist { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; flex: 1; min-height: 120px; padding-right: 2px; }
   .chatmsg { border: 1px solid var(--line); border-radius: 11px; padding: 8px 10px; background: var(--panel2); }
   .chatmsg.mine { border-color: var(--accent2); background: linear-gradient(180deg, rgba(124,58,237,.18), rgba(124,58,237,.05)); }
@@ -92,7 +97,7 @@
   .chatimg { max-width: 100%; border-radius: 9px; margin-top: 5px; display: block; }
   .chatfile { font-size: 13px; margin-top: 5px; }
   .chatfile a { color: var(--accent); }
-  .chatrow { display: flex; gap: 6px; align-items: center; margin-top: 10px; }
+  .chatrow { display: flex; gap: 6px; align-items: center; }
   .chatrow .actinput { flex: 1; min-width: 0; padding: 10px 11px; }
   #chatAttach { padding: 10px 12px; }
   .sideitem { font-size: 14px; padding: 11px 12px; border: 1px solid var(--line); border-radius: 10px; margin-bottom: 6px; cursor: pointer; }
@@ -119,9 +124,12 @@
   .homegroup { max-width: 640px; margin: 20px auto 0; }
   .homegroup .head { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }
   .homegroup .qroot { text-align: left; }
-  @media (max-width: 820px) {
-    aside#side { display: none; }
-    aside#side.open { display: block; position: fixed; right: 0; top: 0; bottom: 0; width: min(86%, 340px); z-index: 20; box-shadow: -8px 0 24px rgba(0,0,0,.4); }
+  @media (max-width: 1000px) {
+    aside.side { position: fixed; top: 0; bottom: 0; width: min(88%, 360px); z-index: 20; }
+    aside.side.left { left: 0; box-shadow: 8px 0 24px rgba(0,0,0,.45); }
+    aside.side.right { right: 0; box-shadow: -8px 0 24px rgba(0,0,0,.45); }
+    aside.side.maximized { width: min(94%, 460px); }
+    aside.side.hidden { display: none; }
   }
 </style>
 </head>
@@ -134,13 +142,31 @@
   </div>
   <div class="spacer"></div>
   <label class="badge" title="Nya verifierade svar läggs i en kö för granskning"><input id="review" type="checkbox" />🔎 granska</label>
-  <button id="sideBtn" class="badge">💬 klassen</button>
+  <button id="chatBtn" class="badge">💬 chatt</button>
+  <button id="qBtn" class="badge">📁 frågor</button>
   <button id="tipsBtn" class="badge">💡 tips &amp; dela</button>
   <button id="pendingBtn" class="badge" hidden>Granska (0)</button>
   <div class="badge" id="status">ansluter…</div>
 </header>
 
 <div class="layout">
+<aside id="chatSide" class="side left">
+  <div class="sidehead"><span class="t">💬 Klasschatt</span>
+    <div class="sidebtns"><button class="sidebtn" data-max title="Maximera / återställ">⤢</button><button class="sidebtn" data-min title="Minimera">–</button></div>
+  </div>
+  <div class="sidebody">
+    <div id="chatinfo" class="tipq">laddar…</div>
+    <div class="chatrow"><span class="tipq">Du skriver som</span><input id="chatName" class="actinput" style="flex:1" placeholder="ditt namn" /></div>
+    <div id="chatList" class="chatlist"><div class="tipq">laddar…</div></div>
+    <div class="chatrow">
+      <button id="chatAttach" class="ghost" type="button" title="Skicka bild eller fil">📎</button>
+      <input id="chatFile" type="file" hidden />
+      <input id="chatText" class="actinput" placeholder="Skriv till klassen…" />
+      <button id="chatSendBtn" class="act" type="button">Skicka</button>
+    </div>
+    <div id="chatStatus" class="attachstatus"></div>
+  </div>
+</aside>
 <main id="main">
   <div class="wrap" id="chat">
     <div class="empty" id="empty">
@@ -156,29 +182,11 @@
     </div>
   </div>
 </main>
-<aside id="side">
-  <div class="tabs">
-    <button class="tab active" data-tab="chat">💬 Chatt</button>
-    <button class="tab" data-tab="fragor">📁 Klassens frågor</button>
+<aside id="qSide" class="side right">
+  <div class="sidehead"><span class="t">📁 Klassens frågor</span>
+    <div class="sidebtns"><button class="sidebtn" data-max title="Maximera / återställ">⤢</button><button class="sidebtn" data-min title="Minimera">–</button></div>
   </div>
-  <div id="paneChat" class="pane">
-    <div id="chatinfo" class="tipq" style="margin-bottom:8px">laddar…</div>
-    <div class="chatrow" style="margin:0 0 8px">
-      <span class="tipq">Du skriver som</span>
-      <input id="chatName" class="actinput" style="flex:1" placeholder="ditt namn" />
-    </div>
-    <div id="chatList" class="chatlist"><div class="tipq">laddar…</div></div>
-    <div class="chatrow">
-      <button id="chatAttach" class="ghost" type="button" title="Skicka bild eller fil">📎</button>
-      <input id="chatFile" type="file" hidden />
-      <input id="chatText" class="actinput" placeholder="Skriv till klassen…" />
-      <button id="chatSendBtn" class="act" type="button">Skicka</button>
-    </div>
-    <div id="chatStatus" class="attachstatus"></div>
-  </div>
-  <div id="paneFragor" class="pane" hidden>
-    <div id="sideList" class="tipq">laddar…</div>
-  </div>
+  <div class="sidebody"><div id="sideList" class="tipq">laddar…</div></div>
 </aside>
 </div>
 
@@ -479,7 +487,40 @@ async function syncCommunity(){
   refreshGroup();
 }
 function maybeSync(){ const now = Date.now(); if (now - lastSync > 15000){ lastSync = now; syncCommunity(); } }
-document.getElementById('sideBtn').addEventListener('click', () => { document.getElementById('side').classList.toggle('open'); loadChat(); });
+// ---- Paneler: minimera / maximera (vänster: chatt, höger: frågor) ----
+(function initPanels(){
+  const store = {
+    get: (k) => { try { return localStorage.getItem('testarn.' + k); } catch(e){ return null; } },
+    set: (k, v) => { try { localStorage.setItem('testarn.' + k, v); } catch(e){} },
+  };
+  const panels = [
+    {el: document.getElementById('chatSide'), key: 'chat'},
+    {el: document.getElementById('qSide'), key: 'q'},
+  ];
+  const mobile = window.innerWidth <= 1000;
+  panels.forEach(p => {
+    let hidden = store.get(p.key + 'Hidden') === '1';
+    if (mobile && store.get(p.key + 'Hidden') === null) hidden = true;
+    p.el.classList.toggle('hidden', hidden);
+    p.el.classList.toggle('maximized', store.get(p.key + 'Max') === '1');
+    p.el.querySelector('[data-min]').onclick = () => { p.el.classList.add('hidden'); store.set(p.key + 'Hidden', '1'); };
+    p.el.querySelector('[data-max]').onclick = () => {
+      p.el.classList.toggle('maximized');
+      store.set(p.key + 'Max', p.el.classList.contains('maximized') ? '1' : '0');
+    };
+  });
+  const chatSide = panels[0].el, qSide = panels[1].el;
+  document.getElementById('chatBtn').onclick = () => {
+    chatSide.classList.toggle('hidden');
+    store.set('chatHidden', chatSide.classList.contains('hidden') ? '1' : '0');
+    if (!chatSide.classList.contains('hidden')) loadChat();
+  };
+  document.getElementById('qBtn').onclick = () => {
+    qSide.classList.toggle('hidden');
+    store.set('qHidden', qSide.classList.contains('hidden') ? '1' : '0');
+    if (!qSide.classList.contains('hidden')) refreshGroup();
+  };
+})();
 (async () => {
   const c = await fetch('/api/community').then(r=>r.json()).catch(()=>({}));
   if (c.on !== false) await syncCommunity(); else refreshGroup();
@@ -540,12 +581,6 @@ async function attachChat(f){
     setTimeout(() => { if (st.textContent === 'uppladdat ✓') st.textContent = ''; }, 4000);
   } catch(e){ st.textContent = 'fel: ' + e; }
 }
-document.querySelectorAll('#side .tab').forEach(b => b.addEventListener('click', () => {
-  document.querySelectorAll('#side .tab').forEach(x => x.classList.toggle('active', x === b));
-  document.getElementById('paneChat').hidden = b.dataset.tab !== 'chat';
-  document.getElementById('paneFragor').hidden = b.dataset.tab !== 'fragor';
-  if (b.dataset.tab === 'chat') loadChat();
-}));
 document.getElementById('chatSendBtn').addEventListener('click', sendChat);
 document.getElementById('chatName').addEventListener('change', async (e) => {
   const v = e.target.value.trim();
