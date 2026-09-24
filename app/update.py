@@ -29,18 +29,28 @@ TARBALL = f"https://codeload.github.com/{REPO}/tar.gz/refs/heads/{BRANCH}"
 KEEP = {".env", "data", ".venv", "dist", ".git"}
 
 
+def _gh_headers() -> dict:
+    """Headers till GitHub-API:t. Frivillig token (GH_TOKEN eller `gh auth token`)
+    ger högre kvot – annars oautentiserat (räcker gott för versionskollen)."""
+    import os
+    tok = (os.getenv("GH_TOKEN") or "").strip()
+    if not tok:
+        try:
+            tok = subprocess.run(["gh", "auth", "token"], capture_output=True, text=True,
+                                 timeout=10).stdout.strip()
+        except Exception:
+            tok = ""
+    h = {"Accept": "application/vnd.github.raw"}
+    if tok:
+        h["Authorization"] = f"Bearer {tok}"
+    return h
+
+
 def latest_version() -> str:
     # 1) GitHub API (färskt, ej CDN-cachat)
     try:
-        from . import share
-        headers = {}
-        try:
-            headers.update(share._gist_headers())
-        except Exception:
-            pass
-        headers["Accept"] = "application/vnd.github.raw"
         r = httpx.get(f"https://api.github.com/repos/{REPO}/contents/version.txt",
-                      headers=headers, timeout=15.0, follow_redirects=True)
+                      headers=_gh_headers(), timeout=15.0, follow_redirects=True)
         if r.status_code == 200 and r.text.strip():
             return r.text.strip()
     except Exception:

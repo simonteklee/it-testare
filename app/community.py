@@ -252,7 +252,3 @@ def sync() -> dict:
     return {"remote": len(remote), "total": len(merged), "posted": posted,
             "failed": failed, "topic": topic()}
 
-
-def pull_push(gist_id: str = "") -> dict:
-    """Bakåtkompatibelt namn (gisten används inte längre)."""
-    return sync()

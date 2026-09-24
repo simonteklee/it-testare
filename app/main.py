@@ -57,7 +57,6 @@ class VerifyRequest(BaseModel):
 
 class ConfigRequest(BaseModel):
     review_mode: bool | None = None
-    shared_gist: str | None = None
     chat_on: bool | None = None
     chat_name: str | None = None
     chat_topic: str | None = None
@@ -68,14 +67,6 @@ class ChatSendRequest(BaseModel):
     name: str = ""
     url: str = ""
     kind: str = ""
-
-
-class ImportRequest(BaseModel):
-    pack: dict | None = None
-
-
-class GistRequest(BaseModel):
-    gist_id: str = ""
 
 
 class CommunityRequest(BaseModel):
@@ -125,7 +116,6 @@ async def health() -> dict:
             "providers": available_providers(), "kb_chunks": kb.count(),
             "community": kb.count_kind("community"),
             "qa": feedback.stats(), "review_mode": feedback.load_config().get("review_mode", False),
-            "shared_gist": feedback.load_config().get("shared_gist", ""),
             "community_on": feedback.load_config().get("community_on", True),
             "community_topic": community.topic(),
             "community_count": community.count()}
@@ -192,11 +182,6 @@ async def set_config(req: ConfigRequest) -> dict:
     cfg = feedback.load_config()
     if req.review_mode is not None:
         cfg["review_mode"] = req.review_mode
-    if req.shared_gist is not None:
-        gid = req.shared_gist.strip()
-        if gid and "/" in gid:
-            gid = gid.rstrip("/").split("/")[-1]
-        cfg["shared_gist"] = gid
     if req.chat_on is not None:
         cfg["chat_on"] = req.chat_on
     if req.chat_name is not None:
@@ -233,17 +218,6 @@ async def classchat_upload(file: UploadFile = File(...)) -> JSONResponse:
         return JSONResponse({"error": str(e)}, status_code=400)
 
 
-@app.post("/api/sync")
-async def api_sync() -> JSONResponse:
-    gid = feedback.load_config().get("shared_gist", "")
-    if not gid:
-        return JSONResponse({"error": "Ingen delad bas vald."}, status_code=400)
-    try:
-        return JSONResponse(share.sync(gid))
-    except Exception as e:  # noqa: BLE001
-        return JSONResponse({"error": str(e)}, status_code=400)
-
-
 @app.post("/api/feedback")
 async def api_feedback(req: FeedbackRequest) -> dict:
     feedback.add_feedback(req.model_dump())
@@ -274,35 +248,6 @@ async def api_reject(index: int) -> dict:
 @app.get("/api/trending")
 async def trending() -> dict:
     return {"top": share.top_questions(12)}
-
-
-@app.get("/api/export")
-async def export_pack() -> JSONResponse:
-    return JSONResponse(share.build_pack("svar"))
-
-
-@app.post("/api/import")
-async def import_pack(req: ImportRequest) -> JSONResponse:
-    if not req.pack:
-        return JSONResponse({"error": "inget paket"}, status_code=400)
-    return JSONResponse(share.import_pack(req.pack))
-
-
-@app.post("/api/share/gist")
-async def share_gist(req: GistRequest) -> JSONResponse:
-    try:
-        return JSONResponse(share.publish_gist(share.build_pack("svar"), req.gist_id or None))
-    except Exception as e:  # noqa: BLE001
-        return JSONResponse({"error": str(e)}, status_code=400)
-
-
-@app.post("/api/fetch/gist")
-async def fetch_gist(req: GistRequest) -> JSONResponse:
-    try:
-        pack = share.fetch_gist(req.gist_id)
-        return JSONResponse({**share.import_pack(pack), "from_gist": req.gist_id})
-    except Exception as e:  # noqa: BLE001
-        return JSONResponse({"error": str(e)}, status_code=400)
 
 
 @app.get("/manifest.webmanifest")

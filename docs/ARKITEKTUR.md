@@ -27,8 +27,8 @@ web/index.html  ──HTTP──►  app/main.py (FastAPI)
 | `app/extract.py` | Textextrahering (pdf/docx/pptx/xlsx/html/txt) + chunkning + webbsida |
 | `app/search.py` | Webbsök (DuckDuckGo) filtrerat mot vitlista/nyckelord |
 | `app/feedback.py` | 👍/👎, verifiering, granskningsläge, config |
-| `app/share.py` | Delningspaket + GitHub Gist (token via `gh` eller `GH_TOKEN`) |
-| `app/community.py` | Gemensam Q&A-bas (frågor & svar delas via gist) |
+| `app/share.py` | Frågelogg & "vad andra frågat" (lokalt) |
+| `app/community.py` | Klassens frågor – delas mellan användare via ntfy |
 | `ingest.py` | CLI för att läsa in filer/URL:er i kunskapsbasen |
 
 ## Dataflöde (en fråga)
