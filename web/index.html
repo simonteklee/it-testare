@@ -450,6 +450,7 @@ function renderQList(container, items, emptyMsg){
     rootEl.innerHTML = '<span class="qchev">' + (n ? '▸' : '›') + '</span>'
       + '<div class="qtext"><span class="qico">' + (n ? '📁' : '📄') + '</span>' + esc((root.q || '').slice(0, 180))
       +   '<div class="qmeta"><span>📅 ' + esc(fmtDate(root.ts)) + '</span>'
+      +   (root.src ? '<span>👤 ' + esc(root.src) + '</span>' : '')
       +   (n ? '<span class="qbadge">' + n + ' följdfråga' + (n > 1 ? 'or' : '') + '</span>' : '')
       +   '<button class="quse" title="Använd frågan">↩ använd</button></div>'
       + '</div>';
@@ -460,7 +461,7 @@ function renderQList(container, items, emptyMsg){
       box.appendChild(h);
       subs.forEach(s => {
         const el = document.createElement('div'); el.className = 'qsub';
-        el.innerHTML = esc((s.q || '').slice(0, 180)) + '<div class="qmeta"><span>📅 ' + esc(fmtDate(s.ts)) + '</span></div>';
+        el.innerHTML = esc((s.q || '').slice(0, 180)) + '<div class="qmeta"><span>📅 ' + esc(fmtDate(s.ts)) + '</span>' + (s.src ? '<span>👤 ' + esc(s.src) + '</span>' : '') + '</div>';
         el.onclick = () => useQuestion(s.q);
         box.appendChild(el);
       });
@@ -611,7 +612,7 @@ async function showTips(){
         + '<div class="actions"><input class="actinput" id="sharedInput" placeholder="delad bas: gist-id/länk (gemensam med en vän)" />'
         + '<button class="act" id="saveShared">🔗 Spara</button>'
         + '<button class="act" id="syncNow">🔄 Synka</button></div>'
-        + '<div class="actions"><label class="ghost" style="display:flex;gap:6px;align-items:center;cursor:pointer"><input id="commOn" type="checkbox" /> 🌍 Gemensam bas (dela frågor & svar)</label>'
+        + '<div class="actions"><label class="ghost" style="display:flex;gap:6px;align-items:center;cursor:pointer"><input id="commOn" type="checkbox" /> 🌍 Klassens frågor (delas automatiskt – inga nycklar)</label>'
         + '<button class="act" id="commSync">🔄 Synka klassen</button>'
         + '<button class="act" id="commList">👥 Klassens frågor</button></div>'
         + '<div class="actstatus" id="commstatus"></div>'
@@ -662,20 +663,21 @@ async function showTips(){
   cs.textContent = ccfg.count ? ('klassen: ' + ccfg.count + ' frågor/svar') : '';
   box.querySelector('#commOn').onchange = async (e) => {
     await fetch('/api/community', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({on: e.target.checked})});
-    cs.textContent = e.target.checked ? 'gemensam bas: PÅ – dina frågor & svar delas med klassen' : 'gemensam bas: av';
+    cs.textContent = e.target.checked ? 'klassens frågor: PÅ – dina frågor delas automatiskt med klassen' : 'klassens frågor: av';
     refreshStatus();
   };
   box.querySelector('#commSync').onclick = async () => {
     cs.textContent = 'synkar…';
     const r = await fetch('/api/community/sync', {method:'POST'}).then(r=>r.json());
-    cs.textContent = r.error ? ('fel: ' + r.error) : ('synkat ✓ klassen har nu ' + r.total + ' frågor/svar');
+    cs.textContent = r.error ? ('fel: ' + r.error)
+      : ('synkat ✓ klassen har nu ' + r.total + ' frågor/svar' + (r.posted ? ' (skickade ' + r.posted + ' nya)' : ''));
     refreshStatus();
   };
   box.querySelector('#commList').onclick = async () => {
     const r = await fetch('/api/community/list').then(r=>r.json());
     const items = r.items || [];
     const list = document.createElement('div');
-    renderQList(list, items, 'Inget delat än. Slå på Gemensam bas och klicka Synka.');
+    renderQList(list, items, 'Inget delat än. Ställ en fråga – den delas automatiskt.');
     box.appendChild(list);
   };
   // Uppdatera appen

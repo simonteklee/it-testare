@@ -54,18 +54,17 @@ GEMINI_API_KEY=...
 
 > Tips (Linux): lägg `start.sh` som en genväg på skrivbordet/menyn (som `testarn.desktop`).
 
-## Steg 5 — Koppla ihop med en vän (valfritt)
-Ni kan dela kunskap med varandra via en **gemensam gist**:
-1. En av er klickar **💡 tips & dela → 🔗 Dela via GitHub** → får en länk.
-2. Båda klistrar in **samma gist-id/länk** under *"delad bas"* och klickar **🔗 Spara**.
-3. Klicka **🔄 Synka** — nu hämtas varandras **verifierade svar** (märkta som *community*) och
-   ert gemensamma kunskapsläge skickas tillbaka. Ert TestARN "växer ihop".
+## Steg 5 — Klassen delar frågor automatiskt
+Inget att koppla eller klistra in: **Klassens frågor** är på som standard. Varje fråga du ställer
+delas till klassens gemensamma rum (via ntfy.sh – gratis, inga nycklar) och allas frågor syns under
+**📁 Klassens frågor** med vem som frågat. Stäng av med kryssrutan **🌍 Klassens frågor** i *💡 tips & dela*.
 
-Alternativt: **⬇ Ladda ner mitt paket** → skicka filen → vännen importerar via **⬇ Hämta paket**.
+Vill ni hellre dela **verifierade svar** via en länk: **💡 tips & dela → 🔗 Dela via GitHub** (eller
+**⬇ Ladda ner mitt paket** och skicka filen → vännen importerar via **⬇ Hämta paket**).
 
 ## Bra att veta
 - Allt ligger **lokalt** hos dig; bara själva språkmodellsanropen går till molnet.
-- Verifierade svar och frågor är det enda som delas.
+- **Klassens frågor** (fråga + svar) delas automatiskt; verifierade svar delas bara om du aktivt synkar.
 - Modeller och nycklar är dina egna och gratis.
 
 ---

@@ -9,7 +9,7 @@ web/index.html  ──HTTP──►  app/main.py (FastAPI)
         ┌──────────────────────┼───────────────────────────┐
         ▼                      ▼                           ▼
    app/llm.py            app/kb.py + app/extract.py    app/community.py + app/share.py
- (Groq/Gemini/Ollama)   (embeddings + dokument)        (delad gist: frågor & svar)
+ (Groq/Gemini/Ollama)   (embeddings + dokument)        (ntfy: klassens frågor + paket)
         │                      │
         └────────► app/search.py (webbsök, vitlista)
                                │
@@ -54,7 +54,7 @@ web/index.html  ──HTTP──►  app/main.py (FastAPI)
 - `qa.jsonl` – lokala frågor & svar
 - `community_qa.jsonl` – hämtade (gruppens) frågor & svar
 - `feedback.jsonl` / `pending.jsonl` – kvalitetssäkring
-- `config.json` – inställningar (granskningsläge, gemensam bas, delad gist)
+- `config.json` – inställningar (granskningsläge, klassens frågor, delad gist för paket)
 - `uploads/` – uppladdade filer
 
 ## Vidareutveckling

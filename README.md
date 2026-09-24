@@ -19,7 +19,7 @@ svar och kunskap.
 - 📎 **Filuppladdning** – PDF, Word, PowerPoint, Excel, HTML, txt, md, csv, json m.fl.
 - 🌐 **Webbsök** mot en vitlista av testkällor (gratis).
 - ✅ **Kvalitetssäkring** – 👍/👎, "verifiera" (betrodd kunskapsbank) och valfritt granskningsläge.
-- 🌍 **Gemensam bas** – dela frågor & svar med klassen via en delad (hemlig) GitHub-gist. En knapp.
+- 🌍 **Klassens frågor** – allas frågor syns hos alla automatiskt (via ntfy – inga nycklar, inget att klistra in).
 - 📁 **Klassens frågor i trådar** – frågor med följdfrågor samlas i en "mapp"; klicka för att fälla ut.
 - 💬 **Klasschatt (24 h)** – alla i klassen kan se och skriva; text + bilder/filer som försvinner efter 24 h.
 - 🖥️ **App-känsla** – installerbar som app (PWA) / eget fönster, ikon på skrivbord & i Startmenyn.
@@ -62,22 +62,23 @@ Fråga → "bara test"-lager → kunskapsbas (RAG) + webbsök (vitlista)
 | Inläsning | `app/extract.py` (pdf/docx/pptx/xlsx/html/txt) |
 | Webbsök | DuckDuckGo + vitlista – `app/search.py` |
 | Kvalitet | feedback + verifiering – `app/feedback.py` |
-| Delning | GitHub Gist – `app/share.py`, `app/community.py` |
+| Delning | Klassens frågor via ntfy.sh (`app/community.py`) + paket via GitHub Gist (`app/share.py`) |
 
 Se [`docs/ARKITEKTUR.md`](docs/ARKITEKTUR.md) för detaljer.
 
 ## Dela & gemensam bas
 
 - **Dela med en vän:** skicka installationsraden ovan.
-- **Gemensam bas:** slå på **🌍 Gemensam bas** i panelen *💡 tips & dela* och klicka **Synka**.
-  Alla som gjort samma sak ser varandras frågor & svar och kan återanvända varandras prompter.
-  (Standardrummet är förvalt – ingen id-kopiering behövs.) Detaljer: [`docs/DELNING.md`](docs/DELNING.md).
+- **Klassens frågor:** på som standard – **inga nycklar, inget id att klistra in**. Varje fråga du
+  ställer delas automatiskt till klassens gemensamma rum, och allas frågor syns under 📁 *Klassens frågor*
+  (med vem som frågat). Stäng av med kryssrutan **🌍 Klassens frågor** i *💡 tips & dela*.
+  Detaljer: [`docs/DELNING.md`](docs/DELNING.md).
 
 ## Integritet & kostnad
 
 - Allt ligger **lokalt** hos dig (`data/`). Nycklar i `.env` (committas aldrig).
 - **Inget kostar pengar:** gratistjänster + lokal embeddings. Gratis LLM-tjänster har tak (t.ex. Groq ~1000/dag).
-- Den gemensamma basen delar **bara** det du aktivt synkar (och kan stängas av).
+- **Klassens frågor** delar fråga + svar automatiskt (och kan stängas av när du vill).
 
 ## Utveckling
 

@@ -12,6 +12,5 @@ curl -fsSL "https://raw.githubusercontent.com/simonteklee/testarn/main/install.s
    (Det syns inget när du klistrar in — det är normalt.)
 4) Klart! Boten öppnas i webbläsaren på http://127.0.0.1:8765
 
-Vill du dela kunskap med mig? Klistra in detta id under "delad bas" i knappen 💡 tips & dela,
-klicka Spara och sedan Synka:
-82014cbacdd3ad803af69597106c5538
+Frågor delas automatiskt med klassen – inget att klistra in.
+Starta appen så syns allas frågor under 📁 Klassens frågor.

@@ -80,7 +80,7 @@ class GistRequest(BaseModel):
 
 class CommunityRequest(BaseModel):
     on: bool | None = None
-    gist: str | None = None
+    topic: str | None = None
 
 
 def gather(query: str, use_web: bool) -> tuple[str, list[dict]]:
@@ -127,6 +127,7 @@ async def health() -> dict:
             "qa": feedback.stats(), "review_mode": feedback.load_config().get("review_mode", False),
             "shared_gist": feedback.load_config().get("shared_gist", ""),
             "community_on": feedback.load_config().get("community_on", True),
+            "community_topic": community.topic(),
             "community_count": community.count()}
 
 
@@ -328,9 +329,9 @@ async def icon512() -> FileResponse:
 async def community_status() -> dict:
     cfg = feedback.load_config()
     return {"on": cfg.get("community_on", True),
-            "gist": cfg.get("community_gist") or community.DEFAULT_GIST,
+            "topic": community.topic(),
             "count": community.count(),
-            "default_gist": community.DEFAULT_GIST}
+            "default_topic": community.DEFAULT_TOPIC}
 
 
 @app.post("/api/community")
@@ -338,21 +339,16 @@ async def community_set(req: CommunityRequest) -> dict:
     cfg = feedback.load_config()
     if req.on is not None:
         cfg["community_on"] = req.on
-    if req.gist is not None:
-        gid = req.gist.strip()
-        if "/" in gid:
-            gid = gid.rstrip("/").split("/")[-1]
-        cfg["community_gist"] = gid or community.DEFAULT_GIST
+    if req.topic is not None:
+        cfg["qa_topic"] = req.topic.strip() or community.DEFAULT_TOPIC
     feedback.save_config(cfg)
     return cfg
 
 
 @app.post("/api/community/sync")
 async def community_sync() -> JSONResponse:
-    cfg = feedback.load_config()
-    gid = cfg.get("community_gist") or community.DEFAULT_GIST
     try:
-        return JSONResponse(community.pull_push(gid))
+        return JSONResponse(community.sync())
     except Exception as e:  # noqa: BLE001
         return JSONResponse({"error": str(e)}, status_code=400)
 

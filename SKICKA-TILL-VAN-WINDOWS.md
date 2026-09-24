@@ -16,6 +16,5 @@ irm "https://raw.githubusercontent.com/simonteklee/testarn/main/install.ps1?v=$(
 
 Nästa gång du vill starta: gå in i mappen "testarn" (i din hemkatalog) och dubbelklicka på start.cmd.
 
-Vill du dela kunskap med mig? Klistra in detta id under "delad bas" i knappen 💡 tips & dela,
-klicka Spara och sedan Synka:
-82014cbacdd3ad803af69597106c5538
+Frågor delas automatiskt med klassen – inget att klistra in.
+Starta appen så syns allas frågor under 📁 Klassens frågor.
