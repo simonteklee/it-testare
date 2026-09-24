@@ -91,7 +91,7 @@ EMBED_MODEL=sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
 EOF
   chmod 600 .env
 fi
-chmod +x start.sh
+chmod +x start.sh start-debug.sh
 
 # Stoppa/starta om ev. gammal server sa att den NYA koden kor
 if [ -f "$HOME/.config/systemd/user/testarn.service" ]; then

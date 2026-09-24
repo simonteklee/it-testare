@@ -86,9 +86,21 @@ EMBED_MODEL=sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
 Get-Process uvicorn -ErrorAction SilentlyContinue | Stop-Process -Force
 
 Write-Host "`nKlart! TestARN version $installed$(if ($latest) { " (senaste: $latest)" }) - startar i bakgrunden..." -ForegroundColor Green
-Start-Process -WindowStyle Hidden -FilePath "$dir\.venv\Scripts\uvicorn.exe" `
-    -ArgumentList "app.main:app --host 127.0.0.1 --port 8765" -WorkingDirectory $dir
-Start-Sleep -Seconds 3
+Start-Process -WindowStyle Hidden -FilePath "cmd.exe" -ArgumentList "/c","`"$dir\start-server.cmd`"" -WorkingDirectory $dir
+# vanta tills servern svarar (max ~30 s); visa annars loggen
+$ok = $false
+for ($i = 0; $i -lt 30; $i++) {
+    Start-Sleep -Milliseconds 1000
+    try {
+        $r = Invoke-WebRequest "http://127.0.0.1:8765/api/health" -UseBasicParsing -TimeoutSec 2
+        if ($r.StatusCode -eq 200) { $ok = $true; break }
+    } catch { }
+}
+if (-not $ok) {
+    Write-Host "! TestARN-servern startade inte." -ForegroundColor Red
+    Write-Host "  Skicka denna loggfil till Simon: $dir\testarn.log" -ForegroundColor Red
+    if (Test-Path "$dir\testarn.log") { Get-Content "$dir\testarn.log" -Tail 25 }
+}
 Start-Process "http://127.0.0.1:8765"
 
 # 6) genvagar (skrivbord + startmeny)

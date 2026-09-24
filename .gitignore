@@ -12,3 +12,6 @@ __pycache__/
 
 # lokala gist-backuper (innehåller klassdata)
 .gist-backup/
+
+# lokal logg
+testarn.log

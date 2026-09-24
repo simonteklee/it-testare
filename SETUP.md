@@ -65,6 +65,18 @@ delas till klassens gemensamma rum (via ntfy.sh – gratis, inga nycklar) och al
 - **Klassens frågor** (fråga + svar) delas automatiskt; verifierade svar delas bara om du aktivt synkar.
 - Modeller och nycklar är dina egna och gratis.
 
+## Felsökning — "127.0.0.1 refused to connect"
+Det betyder att **servern inte kör** (webbläsaren öppnades, men appen startade inte).
+
+**Visa det riktiga felet:**
+- **Linux/macOS:** kör `./start-debug.sh` i appmappen (t.ex. `~/testarn`) och läs texten.
+- **Windows:** kör i appmappen (t.ex. `%USERPROFILE%\testarn`):
+  `.venv\Scripts\uvicorn.exe app.main:app --host 127.0.0.1 --port 8765`
+- **Windows (logg):** öppna `testarn.log` i appmappen. **Linux-logg:** `/tmp/testarn.log`.
+
+Vanliga orsaker: installationen avbröts innan den var klar (kör installationsraden igen),
+eller att en gammal server hänger på port 8765 (starta om datorn / stäng gamla fönster).
+
 ---
 
 ## Windows
