@@ -70,8 +70,13 @@ Det betyder att **servern inte kör** (webbläsaren öppnades, men appen startad
 
 **Visa det riktiga felet:**
 - **Linux/macOS:** kör `./start-debug.sh` i appmappen (t.ex. `~/testarn`) och läs texten.
-- **Windows:** kör i appmappen (t.ex. `%USERPROFILE%\testarn`):
-  `.venv\Scripts\uvicorn.exe app.main:app --host 127.0.0.1 --port 8765`
+- **Windows:** dubbelklicka **`start-debug.cmd`** i appmappen — då stannar fönstret och visar felet.
+
+  Manuellt i PowerShell:
+  ```powershell
+  cd $HOME\testarn
+  .\.venv\Scripts\uvicorn.exe app.main:app --host 127.0.0.1 --port 8765
+  ```
 - **Windows (logg):** öppna `testarn.log` i appmappen. **Linux-logg:** `/tmp/testarn.log`.
 
 Vanliga orsaker: installationen avbröts innan den var klar (kör installationsraden igen),
