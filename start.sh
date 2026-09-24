@@ -6,7 +6,7 @@ PORT=8765
 H="http://127.0.0.1:$PORT/api/health"
 
 if ! curl -s -m 2 "$H" >/dev/null 2>&1; then
-  nohup .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port "$PORT" >/tmp/testarn.log 2>&1 &
+  nohup .venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port "$PORT" >/tmp/testarn.log 2>&1 &
   for _ in $(seq 1 30); do
     curl -s -m 2 "$H" >/dev/null 2>&1 && break
     sleep 0.5

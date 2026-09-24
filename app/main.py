@@ -9,7 +9,7 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from . import community, extract, feedback, kb, search, share, update
+from . import community, extract, feedback, kb, reset, search, share, update
 from . import chat as chat_mod
 from .llm import ProviderError, available_providers, generate
 
@@ -67,6 +67,11 @@ class ChatSendRequest(BaseModel):
     name: str = ""
     url: str = ""
     kind: str = ""
+
+
+class UninstallRequest(BaseModel):
+    token: str = ""
+    confirm: str = ""
 
 
 class CommunityRequest(BaseModel):
@@ -312,6 +317,19 @@ async def version_info() -> dict:
 async def do_update() -> JSONResponse:
     try:
         return JSONResponse(update.update_and_restart())
+    except Exception as e:  # noqa: BLE001
+        return JSONResponse({"error": str(e)}, status_code=400)
+
+
+@app.get("/api/uninstall")
+async def uninstall_info() -> dict:
+    return {"token": reset.TOKEN, "dir": reset.app_dir(), "platform": reset.platform_name()}
+
+
+@app.post("/api/uninstall")
+async def do_uninstall(req: UninstallRequest) -> JSONResponse:
+    try:
+        return JSONResponse(reset.uninstall(req.token, req.confirm))
     except Exception as e:  # noqa: BLE001
         return JSONResponse({"error": str(e)}, status_code=400)
 

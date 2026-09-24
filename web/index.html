@@ -613,7 +613,9 @@ async function showTips(){
   html += '<div class="actions"><label class="ghost" style="display:flex;gap:6px;align-items:center;cursor:pointer"><input id="commOn" type="checkbox" /> 🌍 Klassens frågor (delas automatiskt – inga nycklar)</label>'
         + '<button class="act" id="commSync">🔄 Synka klassen</button>'
         + '<button class="act" id="commList">👥 Klassens frågor</button></div>'
-        + '<div class="actstatus" id="commstatus"></div>';
+        + '<div class="actstatus" id="commstatus"></div>'
+        + '<div class="actions" style="margin-top:14px"><button class="ghost" id="resetShow" style="opacity:.55;font-size:12px">🗑 Avinstallera TestARN…</button></div>'
+        + '<div id="resetZone"></div>';
   box.innerHTML = DOMPurify.sanitize(html);
   chat.appendChild(box); document.getElementById('main').scrollTop = 1e9;
   // Gemensam bas (community)
@@ -639,6 +641,33 @@ async function showTips(){
     const list = document.createElement('div');
     renderQList(list, items, 'Inget delat än. Ställ en fråga – den delas automatiskt.');
     box.appendChild(list);
+  };
+  // Avinstallera (dold, tre steg)
+  box.querySelector('#resetShow').onclick = () => {
+    const z = box.querySelector('#resetZone');
+    z.innerHTML = '<div class="actstatus" style="color:var(--warn)">⚠ Detta raderar appen och ALLA dina filer (inställningar, kunskapsbas, chatt) och tar bort genvägarna. Du kan sedan installera om den helt färskt.</div>'
+      + '<div class="actions"><button class="act" id="resetStep2">Ja, jag vill radera allt</button>'
+      + '<button class="act" id="resetCancel">Avbryt</button></div>';
+    z.querySelector('#resetCancel').onclick = () => { z.innerHTML = ''; };
+    z.querySelector('#resetStep2').onclick = () => {
+      z.innerHTML = '<div class="actstatus" style="color:var(--red)">Sista steget: skriv RADERA och klicka på den röda knappen.</div>'
+        + '<div class="actions"><input class="actinput" id="resetWord" placeholder="RADERA" />'
+        + '<button class="act" id="resetGo" style="background:linear-gradient(135deg,#b91c1c,#ef4444)">🗑 Radera allt</button></div>'
+        + '<div class="actstatus" id="resetStatus"></div>';
+      z.querySelector('#resetGo').onclick = async () => {
+        const w = (z.querySelector('#resetWord').value || '').trim();
+        const stt = z.querySelector('#resetStatus');
+        if (w.toUpperCase() !== 'RADERA') { stt.textContent = 'Skriv exakt RADERA.'; return; }
+        stt.textContent = 'raderar…';
+        try {
+          const info = await fetch('/api/uninstall').then(r=>r.json());
+          const r = await fetch('/api/uninstall', {method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({token: info.token, confirm: w})}).then(r=>r.json());
+          stt.textContent = r.error ? ('fel: ' + r.error)
+            : 'Klart! Appen stängs och raderas nu. Installera om med installationsraden när du vill.';
+        } catch(e){ stt.textContent = 'Klart! Appen stängs och raderas nu.'; }
+      };
+    };
   };
   // Uppdatera appen
   let ver = {current:'?', latest:'?', update_available:false};

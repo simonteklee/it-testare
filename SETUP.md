@@ -84,6 +84,9 @@ Det betyder att **servern inte kör** (webbläsaren öppnades, men appen startad
 Vanliga orsaker: installationen avbröts innan den var klar (kör installationsraden igen),
 eller att en gammal server hänger på port 8765 (starta om datorn / stäng gamla fönster).
 
+**Börja helt om?** Öppna **💡 tips & dela → 🗑 Avinstallera TestARN…** (tre steg). Den stoppar appen
+och raderar mappen + genvägarna. Kör sedan installationsraden igen för en helt färsk app.
+
 ---
 
 ## Windows

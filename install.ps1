@@ -31,13 +31,7 @@ function Get-Pkg {
 
 Write-Host "== TestARN installeras till $dir ==" -ForegroundColor Cyan
 
-# 1) uv (fixar Python automatiskt)
-if (-not (Get-Command uv -ErrorAction SilentlyContinue) -and -not (Test-Path "$HOME\.local\bin\uv.exe")) {
-    Write-Host "• installerar uv..."
-    powershell -ExecutionPolicy Bypass -Command "irm https://astral.sh/uv/install.ps1 | iex"
-}
-$env:Path = "$HOME\.local\bin;$env:Path"
-$uv = if (Get-Command uv -ErrorAction SilentlyContinue) { "uv" } else { "$HOME\.local\bin\uv.exe" }
+# 1) Python: anvand systemets om det finns (undviker uv:s Windows-trampoliner), annars uv.
 
 # 2) hamta programmet (senaste versionen)
 New-Item -ItemType Directory -Force -Path $dir | Out-Null
@@ -52,27 +46,38 @@ if ($latest -and $installed -ne $latest) {
     $installed = (Get-Content version.txt -ErrorAction SilentlyContinue | Select-Object -First 1).Trim()
 }
 
-# 3) miljo + paket
+# 3) miljo + paket. Foredra systemets Python (undviker uv:s Windows-trampoliner).
 Write-Host "• installerar (tar ~1 min)..."
 if (Test-Path ".venv") { Remove-Item ".venv" -Recurse -Force }
-& $uv venv .venv
-& $uv pip install -q -r requirements.txt
 
-# Kontroll att miljon verkligen kor (uv kan ge trasiga 'trampolines' pa vissa Windows).
-# Om inte: bygg miljon med systemets Python i stallet.
+$sysPy = $null
+$c = Get-Command python -ErrorAction SilentlyContinue
+if ($c) {
+    & $c.Source -c "import sys; raise SystemExit(0 if sys.version_info>=(3,10) else 1)" 2>$null
+    if ($LASTEXITCODE -eq 0) { $sysPy = $c.Source }
+}
+
+if ($sysPy) {
+    Write-Host "  anvander systemets Python ($sysPy)"
+    & $sysPy -m venv .venv
+    & "$dir\.venv\Scripts\python.exe" -m pip install -q --upgrade pip
+    & "$dir\.venv\Scripts\python.exe" -m pip install -q -r requirements.txt
+} else {
+    Write-Host "  ingen Python hittades - anvander uv..."
+    if (-not (Get-Command uv -ErrorAction SilentlyContinue) -and -not (Test-Path "$HOME\.local\bin\uv.exe")) {
+        powershell -ExecutionPolicy Bypass -Command "irm https://astral.sh/uv/install.ps1 | iex"
+    }
+    $env:Path = "$HOME\.local\bin;$env:Path"
+    $uv = if (Get-Command uv -ErrorAction SilentlyContinue) { "uv" } else { "$HOME\.local\bin\uv.exe" }
+    & $uv venv .venv
+    & $uv pip install -q -r requirements.txt
+}
+
+# Sjalvtest att miljon fungerar
 & "$dir\.venv\Scripts\python.exe" -c "import uvicorn, fastapi" 2>$null
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "! Python-miljon fungerar inte (uv-trampolin). Forsoker med systemets Python..." -ForegroundColor Yellow
-    $sysPy = Get-Command python -ErrorAction SilentlyContinue
-    if ($sysPy) {
-        Remove-Item ".venv" -Recurse -Force -ErrorAction SilentlyContinue
-        & $sysPy.Source -m venv .venv
-        & "$dir\.venv\Scripts\python.exe" -m pip install -q --upgrade pip
-        & "$dir\.venv\Scripts\python.exe" -m pip install -q -r requirements.txt
-    } else {
-        Write-Host " Kunde inte skapa en fungerande Python-miljo." -ForegroundColor Red
-        Write-Host " Tips: installera Python 3.12 fran https://www.python.org/downloads/ och kor sedan installationsraden igen." -ForegroundColor Red
-    }
+    Write-Host "! Python-miljon fungerar inte." -ForegroundColor Red
+    Write-Host " Tips: installera Python 3.12 fran https://www.python.org/downloads/ (valj 'Add python.exe to PATH') och kor installationsraden igen." -ForegroundColor Red
 }
 
 # 4) nycklar (behall befintliga om de finns)

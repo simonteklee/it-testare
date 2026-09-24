@@ -4,4 +4,4 @@
 cd "$(dirname "$0")"
 echo "Startar TestARN i forgrunden. Fel visas har nedan. Stoppa med Ctrl+C."
 echo "-------------------------------------------------------------"
-exec .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8765
+exec .venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8765

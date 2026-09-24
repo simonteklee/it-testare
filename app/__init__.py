@@ -1,2 +1,2 @@
 """TestARN — version."""
-__version__ = "1.7.5"
+__version__ = "1.8.0"

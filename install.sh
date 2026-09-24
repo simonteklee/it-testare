@@ -49,19 +49,28 @@ if [ -n "$LATEST" ] && [ "$INSTALLED" != "$LATEST" ]; then
 fi
 
 echo "• skapar python-miljo och installerar (tar ~1 min)..."
-if ! command -v uv >/dev/null 2>&1 && [ ! -x "$HOME/.local/bin/uv" ]; then
-  echo "  installerar uv..."
-  curl -LsSf https://astral.sh/uv/install.sh | sh >/dev/null 2>&1 || true
-fi
-UV="$(command -v uv || echo "$HOME/.local/bin/uv")"
-if [ -x "$UV" ] || command -v "$UV" >/dev/null 2>&1; then
-  rm -rf .venv
+rm -rf .venv
+# Foredra systemets Python (undviker uv:s Windows-trampoliner).
+SYS=""
+for c in python3 python; do
+  if command -v "$c" >/dev/null 2>&1 && \
+     "$c" -c 'import sys; raise SystemExit(0 if sys.version_info>=(3,10) else 1)' 2>/dev/null; then
+    SYS="$c"; break
+  fi
+done
+if [ -n "$SYS" ]; then
+  echo "  använder systemets Python ($SYS)"
+  "$SYS" -m venv .venv
+  .venv/bin/python -m pip install -q --upgrade pip
+  .venv/bin/python -m pip install -q -r requirements.txt
+else
+  echo "  ingen python3 hittades - installerar uv..."
+  if ! command -v uv >/dev/null 2>&1 && [ ! -x "$HOME/.local/bin/uv" ]; then
+    curl -LsSf https://astral.sh/uv/install.sh | sh >/dev/null 2>&1 || true
+  fi
+  UV="$(command -v uv || echo "$HOME/.local/bin/uv")"
   "$UV" venv .venv --python 3.12 >/dev/null 2>&1 || "$UV" venv .venv
   "$UV" pip install -q -r requirements.txt
-else
-  rm -rf .venv
-  python3 -m venv .venv
-  .venv/bin/pip install -q -r requirements.txt
 fi
 
 # Nycklar
