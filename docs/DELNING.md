@@ -31,15 +31,6 @@ Vill ni ha ett eget rum istället för standardrummet: sätt en egen topic i `da
 (`"qa_topic": "ert-namn"`) på alla installationer. (Standardrummet är
 `testarn-fragor-7b3d91c4`.)
 
-## Verifierade svar via länk (valfritt)
-
-Vill ni dela **verifierade svar** (👍/✅) med en vän i stället:
-
-1. Klicka **💡 tips & dela → 🔗 Dela via GitHub** → du får en länk.
-2. Vännen klistrar in länken under *"delad bas"* → **🔗 Spara** → **🔄 Synka**.
-
-Alternativt: **⬇ Ladda ner mitt paket** → skicka filen → vännen importerar via **⬇ Hämta paket**.
-
 ## Dela appen med fler
 
 Skicka installationsraden – se [`SETUP.md`](../SETUP.md) och färdiga texter i

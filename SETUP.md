@@ -59,8 +59,6 @@ Inget att koppla eller klistra in: **Klassens frågor** är på som standard. Va
 delas till klassens gemensamma rum (via ntfy.sh – gratis, inga nycklar) och allas frågor syns under
 **📁 Klassens frågor** med vem som frågat. Stäng av med kryssrutan **🌍 Klassens frågor** i *💡 tips & dela*.
 
-Vill ni hellre dela **verifierade svar** via en länk: **💡 tips & dela → 🔗 Dela via GitHub** (eller
-**⬇ Ladda ner mitt paket** och skicka filen → vännen importerar via **⬇ Hämta paket**).
 
 ## Bra att veta
 - Allt ligger **lokalt** hos dig; bara själva språkmodellsanropen går till molnet.

@@ -62,7 +62,7 @@ Fråga → "bara test"-lager → kunskapsbas (RAG) + webbsök (vitlista)
 | Inläsning | `app/extract.py` (pdf/docx/pptx/xlsx/html/txt) |
 | Webbsök | DuckDuckGo + vitlista – `app/search.py` |
 | Kvalitet | feedback + verifiering – `app/feedback.py` |
-| Delning | Klassens frågor via ntfy.sh (`app/community.py`) + paket via GitHub Gist (`app/share.py`) |
+| Delning | Klassens frågor via ntfy.sh (`app/community.py`) |
 
 Se [`docs/ARKITEKTUR.md`](docs/ARKITEKTUR.md) för detaljer.
 

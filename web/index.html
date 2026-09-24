@@ -395,13 +395,18 @@ async function showPending(){
 }
 
 document.getElementById('pendingBtn').addEventListener('click', showPending);
-document.getElementById('tipsBtn').addEventListener('click', showTips);
+document.getElementById('tipsBtn').addEventListener('click', toggleTips);
 
 // Gör appen installerbar (PWA)
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
 
 // ---- Gemensam bas i fokus ----
 let lastSync = 0;
+function toggleTips(){
+  const b = document.getElementById('tipsPanel');
+  if (b){ b.remove(); return; }
+  showTips();
+}
 function useQuestion(q){ if (!q) return; inp.value = q; autosize(); inp.focus(); }
 
 // Datum bredvid frågan ("idag 14:04", annars "23 sep" / "23 sep 2025")
@@ -597,7 +602,7 @@ setInterval(loadChat, 8000);
 async function showTips(){
   let top = [];
   try { top = (await fetch('/api/trending').then(r=>r.json())).top || []; } catch(e){}
-  const box = document.createElement('div'); box.className = 'msg bot';
+  const box = document.createElement('div'); box.className = 'msg bot'; box.id = 'tipsPanel';
   let html = '<b>💡 Vad andra frågat</b>';
   html += top.length
     ? top.map(x => '<div class="tipq">' + x.antal + '× — ' + esc(x.q) + '</div>').join('')
@@ -605,57 +610,12 @@ async function showTips(){
   html += '<div class="actions" style="margin-top:8px"><span class="tipq" id="verline"></span>'
         + '<button class="act" id="updBtn">🔄 Uppdatera appen</button></div>'
         + '<div class="actstatus" id="updstatus"></div>';
-  html += '<div class="actions"><button class="act" id="dlPack">⬇ Ladda ner mitt paket</button>'
-        + '<button class="act" id="shareGist">🔗 Dela via GitHub</button></div>'
-        + '<div class="actions"><input class="actinput" id="gistInput" placeholder="gist-id eller länk från en vän" />'
-        + '<button class="act" id="fetchGist">⬇ Hämta paket</button></div>'
-        + '<div class="actions"><input class="actinput" id="sharedInput" placeholder="delad bas: gist-id/länk (gemensam med en vän)" />'
-        + '<button class="act" id="saveShared">🔗 Spara</button>'
-        + '<button class="act" id="syncNow">🔄 Synka</button></div>'
-        + '<div class="actions"><label class="ghost" style="display:flex;gap:6px;align-items:center;cursor:pointer"><input id="commOn" type="checkbox" /> 🌍 Klassens frågor (delas automatiskt – inga nycklar)</label>'
+  html += '<div class="actions"><label class="ghost" style="display:flex;gap:6px;align-items:center;cursor:pointer"><input id="commOn" type="checkbox" /> 🌍 Klassens frågor (delas automatiskt – inga nycklar)</label>'
         + '<button class="act" id="commSync">🔄 Synka klassen</button>'
         + '<button class="act" id="commList">👥 Klassens frågor</button></div>'
-        + '<div class="actstatus" id="commstatus"></div>'
-        + '<div class="actstatus" id="tipstatus"></div>';
+        + '<div class="actstatus" id="commstatus"></div>';
   box.innerHTML = DOMPurify.sanitize(html);
   chat.appendChild(box); document.getElementById('main').scrollTop = 1e9;
-  const st = box.querySelector('#tipstatus');
-  box.querySelector('#dlPack').onclick = async () => {
-    const d = await fetch('/api/export').then(r=>r.json());
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([JSON.stringify(d,null,2)], {type:'application/json'}));
-    a.download = 'testarn-paket.json'; a.click();
-    st.textContent = 'paket nedladdat (' + (d.verified||[]).length + ' verifierade svar, ' + (d.top_questions||[]).length + ' frågor)';
-  };
-  box.querySelector('#shareGist').onclick = async () => {
-    st.textContent = 'publicerar…';
-    const r = await fetch('/api/share/gist', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({gist_id:''})}).then(r=>r.json());
-    st.textContent = r.url ? ('delad! länk: ' + r.url) : ('fel: ' + (r.error||'?'));
-  };
-  box.querySelector('#fetchGist').onclick = async () => {
-    let gid = box.querySelector('#gistInput').value.trim();
-    if (gid.includes('/')) gid = gid.replace(/\/$/,'').split('/').pop();
-    st.textContent = 'hämtar…';
-    const r = await fetch('/api/fetch/gist', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({gist_id: gid})}).then(r=>r.json());
-    st.textContent = r.error ? ('fel: ' + r.error) : (r.added + ' community-svar hämtade');
-    refreshStatus();
-  };
-  const cfg = await fetch('/api/config').then(r=>r.json());
-  box.querySelector('#sharedInput').value = cfg.shared_gist || '';
-  box.querySelector('#saveShared').onclick = async () => {
-    const v = box.querySelector('#sharedInput').value.trim();
-    const c = await fetch('/api/config', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({shared_gist: v})}).then(r=>r.json());
-    st.textContent = 'delad bas: ' + (c.shared_gist || '(ingen)');
-    refreshStatus();
-  };
-  box.querySelector('#syncNow').onclick = async () => {
-    st.textContent = 'synkar…';
-    const r = await fetch('/api/sync', {method:'POST'}).then(r=>r.json());
-    st.textContent = r.error
-      ? ('fel: ' + r.error)
-      : ('synkat ✓ hämtade ' + r.pulled + ', la till ' + r.added + ' nya (community: ' + r.community + ')');
-    refreshStatus();
-  };
   // Gemensam bas (community)
   const cs = box.querySelector('#commstatus');
   const ccfg = await fetch('/api/community').then(r=>r.json());
