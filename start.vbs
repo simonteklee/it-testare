@@ -7,8 +7,8 @@ q   = Chr(34)
 url = "http://127.0.0.1:8765"
 log = dir & "\testarn.log"
 
-If Not fso.FileExists(dir & "\.venv\Scripts\uvicorn.exe") Then
-  MsgBox "TestARN verkar inte vara installerat (hittar ingen server)." & vbCrLf & _
+If Not fso.FileExists(dir & "\.venv\Scripts\python.exe") Then
+  MsgBox "TestARN verkar inte vara installerat (hittar ingen Python-miljo)." & vbCrLf & _
          "Kor installationsraden i PowerShell forst.", 16, "TestARN"
   WScript.Quit
 End If

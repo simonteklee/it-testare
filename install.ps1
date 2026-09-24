@@ -58,6 +58,23 @@ if (Test-Path ".venv") { Remove-Item ".venv" -Recurse -Force }
 & $uv venv .venv
 & $uv pip install -q -r requirements.txt
 
+# Kontroll att miljon verkligen kor (uv kan ge trasiga 'trampolines' pa vissa Windows).
+# Om inte: bygg miljon med systemets Python i stallet.
+& "$dir\.venv\Scripts\python.exe" -c "import uvicorn, fastapi" 2>$null
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "! Python-miljon fungerar inte (uv-trampolin). Forsoker med systemets Python..." -ForegroundColor Yellow
+    $sysPy = Get-Command python -ErrorAction SilentlyContinue
+    if ($sysPy) {
+        Remove-Item ".venv" -Recurse -Force -ErrorAction SilentlyContinue
+        & $sysPy.Source -m venv .venv
+        & "$dir\.venv\Scripts\python.exe" -m pip install -q --upgrade pip
+        & "$dir\.venv\Scripts\python.exe" -m pip install -q -r requirements.txt
+    } else {
+        Write-Host " Kunde inte skapa en fungerande Python-miljo." -ForegroundColor Red
+        Write-Host " Tips: installera Python 3.12 fran https://www.python.org/downloads/ och kor sedan installationsraden igen." -ForegroundColor Red
+    }
+}
+
 # 4) nycklar (behall befintliga om de finns)
 $hasEnv = (Test-Path ".env") -and (Select-String -Path ".env" -Pattern "GROQ_API_KEY" -Quiet)
 $groq = $env:GROQ_API_KEY; $gem = $env:GEMINI_API_KEY

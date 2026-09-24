@@ -75,8 +75,10 @@ Det betyder att **servern inte kör** (webbläsaren öppnades, men appen startad
   Manuellt i PowerShell:
   ```powershell
   cd $HOME\testarn
-  .\.venv\Scripts\uvicorn.exe app.main:app --host 127.0.0.1 --port 8765
+  .\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8765
   ```
+  > Får du *"uv trampoline failed to spawn Python child process"*: kör installationsraden igen
+  > (den bygger då om Python-miljön, och faller tillbaka på systemets Python om uv strular).
 - **Windows (logg):** öppna `testarn.log` i appmappen. **Linux-logg:** `/tmp/testarn.log`.
 
 Vanliga orsaker: installationen avbröts innan den var klar (kör installationsraden igen),
